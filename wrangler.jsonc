@@ -2,5 +2,21 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fork-or-profit",
   "compatibility_date": "2025-08-03",
-  "main": "./src/index.tsx"
+  "main": "./src/worker.ts",
+  "assets": {
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fork-or-profit-db",
+      "database_id": "REPLACE_WITH_YOUR_DATABASE_ID"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "REPLACE_WITH_YOUR_NAMESPACE_ID"
+    }
+  ]
 }

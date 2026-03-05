@@ -1,0 +1,57 @@
+export const PALETTE = {
+  bg: '#1a1c2c',
+  panelBg: '#333c57',
+  panelBgLight: '#3e4a68',
+  text: '#f4f4f4',
+  textDim: '#94b0c2',
+  textMuted: '#566c86',
+  accentGold: '#f4b41b',
+  healthGreen: '#73c64a',
+  dangerRed: '#d04648',
+  cashGold: '#dad45e',
+  communityTeal: '#6dc2ca',
+  growthPink: '#d77bba',
+  engBlue: '#597dce',
+  cardBorder: '#566c86',
+  dialogBg: '#262b44',
+  highlight: '#fee761',
+  black: '#0f0f1b',
+  shadow: '#181425',
+  white: '#f4f4f4',
+  orange: '#e8a027',
+  brown: '#5d3b2e',
+  brownLight: '#8a5a3a',
+} as const
+
+export type PaletteKey = keyof typeof PALETTE
+
+export const CATEGORY_COLORS: Record<string, string> = {
+  'Open Source': '#73c64a',
+  'Monetization': '#f4b41b',
+  'Growth': '#d77bba',
+  'Operations': '#597dce',
+  'Finance': '#dad45e',
+  'Community': '#6dc2ca',
+  'Competition': '#d04648',
+  'Ecosystem': '#73c64a',
+  'Media': '#d77bba',
+  'Tech': '#597dce',
+  'Market': '#f4b41b',
+  'Regulation': '#d04648',
+}
+
+export const ARCHETYPE_COLORS: Record<string, string> = {
+  executive: '#f4b41b',
+  engineering: '#597dce',
+  product: '#73c64a',
+  growth: '#d77bba',
+  revenue: '#e8a027',
+  community: '#6dc2ca',
+  finance: '#dad45e',
+  operations: '#94b0c2',
+  risk: '#d04648',
+  people: '#73c64a',
+  data: '#597dce',
+  support: '#6dc2ca',
+  design: '#d77bba',
+}
