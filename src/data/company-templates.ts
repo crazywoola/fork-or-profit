@@ -11,6 +11,8 @@ export type CompanyStatId =
   | 'trust'
   | 'risk'
 
+export type CardCategory = 'Open Source' | 'Monetization' | 'Growth' | 'Operations' | 'Finance'
+
 export type CompanyTemplate = {
   id: string
   name: string
@@ -20,6 +22,7 @@ export type CompanyTemplate = {
   eventBias: string
   recommendedRoute: string
   modifiers: Partial<Record<CompanyStatId, number>>
+  effectMultipliers: Partial<Record<CardCategory, number>>
 }
 
 export type CompanyProfile = {
@@ -54,7 +57,8 @@ export const companyTemplates: CompanyTemplate[] = [
       revenue: 2,
       control: -2,
       stability: 3
-    }
+    },
+    effectMultipliers: { 'Open Source': 1.3, 'Monetization': 0.8 },
   },
   {
     id: 'mongodb',
@@ -70,7 +74,8 @@ export const companyTemplates: CompanyTemplate[] = [
       community: 2,
       pressure: 2,
       reputation: 2
-    }
+    },
+    effectMultipliers: { 'Monetization': 1.2, 'Open Source': 1.1 },
   },
   {
     id: 'elastic',
@@ -86,7 +91,8 @@ export const companyTemplates: CompanyTemplate[] = [
       revenue: 3,
       stability: 2,
       risk: 1
-    }
+    },
+    effectMultipliers: { 'Operations': 1.2, 'Monetization': 1.1 },
   },
   {
     id: 'hashicorp',
@@ -102,7 +108,8 @@ export const companyTemplates: CompanyTemplate[] = [
       reputation: 3,
       control: 2,
       dev_speed: 2
-    }
+    },
+    effectMultipliers: { 'Monetization': 1.25, 'Operations': 1.1 },
   },
   {
     id: 'gitlab',
@@ -118,7 +125,8 @@ export const companyTemplates: CompanyTemplate[] = [
       revenue: 3,
       growth: 3,
       control: -1
-    }
+    },
+    effectMultipliers: { 'Open Source': 1.3, 'Growth': 1.1 },
   },
   {
     id: 'redhat',
@@ -135,7 +143,8 @@ export const companyTemplates: CompanyTemplate[] = [
       community: 3,
       growth: -1,
       pressure: 1
-    }
+    },
+    effectMultipliers: { 'Monetization': 1.2, 'Open Source': 1.15 },
   },
   {
     id: 'docker',
@@ -151,7 +160,8 @@ export const companyTemplates: CompanyTemplate[] = [
       revenue: -2,
       pressure: 3,
       control: -2
-    }
+    },
+    effectMultipliers: { 'Growth': 1.3, 'Finance': 0.85 },
   },
   {
     id: 'kubernetes',
@@ -166,7 +176,8 @@ export const companyTemplates: CompanyTemplate[] = [
       trust: 5,
       control: -4,
       reputation: 5
-    }
+    },
+    effectMultipliers: { 'Open Source': 1.4, 'Monetization': 0.7 },
   },
   {
     id: 'dify',
@@ -185,7 +196,8 @@ export const companyTemplates: CompanyTemplate[] = [
       trust: 3,
       pressure: 2,
       risk: 2
-    }
+    },
+    effectMultipliers: { 'Growth': 1.2, 'Open Source': 1.15, 'Operations': 1.1 },
   }
 ]
 

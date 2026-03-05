@@ -1,6 +1,8 @@
-import { Card, GameEvent, GameState, LogType, StatEffect, StatId } from './types'
+import { Card, CardCategory, GameEvent, GameState, LogType, StatEffect, StatId } from './types'
 import { STRATEGY_CARDS } from '../data/cards'
 import { GAME_EVENTS } from '../data/events'
+import type { RoleProfile } from '../data/roles'
+import type { CompanyTemplate } from '../data/company-templates'
 
 const INITIAL_STATS: Record<StatId, number> = {
   cash: 10,
@@ -30,25 +32,94 @@ const MAX_STATS: Record<StatId, number> = {
   risk: 10
 }
 
+export type GameConfig = {
+  role: RoleProfile
+  template: CompanyTemplate
+}
+
+function buildDeck(role: RoleProfile): Card[] {
+  const archetype = role.archetype
+  const roleCardTitles = new Set(role.cards)
+
+  const deck = STRATEGY_CARDS.filter(card => {
+    if (card.core) return true
+    if (card.archetypes?.includes(archetype)) return true
+    if (roleCardTitles.has(card.title)) return true
+    return false
+  })
+
+  // Fisher-Yates shuffle
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]]
+  }
+
+  return deck
+}
+
+function computeMultipliers(
+  role: RoleProfile,
+  template: CompanyTemplate
+): Record<string, number> {
+  const categories: CardCategory[] = ['Open Source', 'Monetization', 'Growth', 'Operations', 'Finance']
+  const result: Record<string, number> = {}
+  for (const cat of categories) {
+    const rm = role.effectMultipliers[cat] ?? 1
+    const cm = template.effectMultipliers[cat] ?? 1
+    result[cat] = Math.round(rm * cm * 100) / 100
+  }
+  return result
+}
+
 export class GameEngine {
   state: GameState
+  private config: GameConfig | null
 
-  constructor() {
+  constructor(config?: GameConfig) {
+    this.config = config ?? null
     this.state = this.getInitialState()
   }
 
   getInitialState(): GameState {
+    const stats = { ...INITIAL_STATS }
+
+    if (this.config) {
+      const { role, template } = this.config
+
+      for (const [key, val] of Object.entries(role.statBonuses)) {
+        const k = key as StatId
+        if (stats[k] !== undefined) {
+          stats[k] = this.clamp(stats[k] + val, 0, MAX_STATS[k])
+        }
+      }
+
+      for (const [key, val] of Object.entries(template.modifiers)) {
+        const k = key as StatId
+        if (stats[k] !== undefined && val !== undefined) {
+          stats[k] = this.clamp(stats[k] + val, 0, MAX_STATS[k])
+        }
+      }
+    }
+
+    const deck = this.config ? buildDeck(this.config.role) : [...STRATEGY_CARDS]
+    const multipliers = this.config
+      ? computeMultipliers(this.config.role, this.config.template)
+      : { 'Open Source': 1, 'Monetization': 1, 'Growth': 1, 'Operations': 1, 'Finance': 1 }
+
     return {
-      stats: { ...INITIAL_STATS },
+      stats,
       round: 1,
       phase: 'event',
       activeEvent: null,
       hand: [],
-      deck: [...STRATEGY_CARDS],
+      deck,
       discardPile: [],
       actionPoints: 3,
       maxActionPoints: 3,
-      history: []
+      history: [],
+      roleId: this.config?.role.id ?? '',
+      templateId: this.config?.template.id ?? '',
+      effectMultipliers: multipliers,
     }
   }
 
@@ -84,9 +155,10 @@ export class GameEngine {
     if (cardIndex === -1) return
 
     const card = this.state.hand[cardIndex]
+    const multiplier = this.state.effectMultipliers[card.category] ?? 1
 
-    this.log('action', `Played card: ${card.title}`)
-    this.applyEffect(card.effect)
+    this.log('action', `Played card: ${card.title}` + (multiplier !== 1 ? ` (x${multiplier})` : ''))
+    this.applyEffect(card.effect, multiplier)
     if (card.cost) this.applyEffect(card.cost)
 
     this.state.hand.splice(cardIndex, 1)
@@ -149,12 +221,13 @@ export class GameEngine {
     this.log('system', 'Deck reshuffled')
   }
 
-  private applyEffect(effect: StatEffect) {
+  private applyEffect(effect: StatEffect, multiplier: number = 1) {
     for (const [key, value] of Object.entries(effect)) {
       const statKey = key as StatId
       if (this.state.stats[statKey] !== undefined) {
+        const scaled = multiplier !== 1 ? Math.round(value * multiplier) : value
         this.state.stats[statKey] = this.clamp(
-          this.state.stats[statKey] + value,
+          this.state.stats[statKey] + scaled,
           0,
           MAX_STATS[statKey]
         )

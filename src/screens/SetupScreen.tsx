@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { roles } from '../data/roles'
 import { companyTemplates } from '../data/company-templates'
+import { STRATEGY_CARDS } from '../data/cards'
 import { PALETTE } from '../pixel/palette'
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from '../components/PixelIcon'
 import type { GameSetup } from '../App'
@@ -88,13 +89,30 @@ export function SetupScreen({ onConfirm }: Props) {
   }, [activePanel, templateIdx, handleConfirm])
 
   const mods = template.modifiers
+  const rb = role.statBonuses
   const baseStats = [
-    { label: 'CASH', value: 10 + (mods.cash ?? 0), max: 50, color: PALETTE.cashGold },
-    { label: 'COMMUNITY', value: 5 + (mods.community ?? 0), max: 50, color: PALETTE.communityTeal },
-    { label: 'GROWTH', value: 3 + (mods.growth ?? 0), max: 50, color: PALETTE.growthPink },
-    { label: 'REPUTATION', value: 5 + (mods.reputation ?? 0), max: 50, color: PALETTE.accentGold },
-    { label: 'REVENUE', value: 0 + (mods.revenue ?? 0), max: 50, color: PALETTE.orange },
+    { label: 'CASH', value: 10 + (mods.cash ?? 0) + (rb.cash ?? 0), max: 50, color: PALETTE.cashGold },
+    { label: 'COMMUNITY', value: 5 + (mods.community ?? 0) + (rb.community ?? 0), max: 50, color: PALETTE.communityTeal },
+    { label: 'GROWTH', value: 3 + (mods.growth ?? 0) + (rb.growth ?? 0), max: 50, color: PALETTE.growthPink },
+    { label: 'REPUTATION', value: 5 + (mods.reputation ?? 0) + (rb.reputation ?? 0), max: 50, color: PALETTE.accentGold },
+    { label: 'REVENUE', value: 0 + (mods.revenue ?? 0) + (rb.revenue ?? 0), max: 50, color: PALETTE.orange },
   ]
+
+  const deckSize = useMemo(() => {
+    const archetype = role.archetype
+    const roleCardTitles = new Set(role.cards)
+    return STRATEGY_CARDS.filter(c => c.core || c.archetypes?.includes(archetype) || roleCardTitles.has(c.title)).length
+  }, [role])
+
+  const combinedMultipliers = useMemo(() => {
+    const cats = ['Open Source', 'Monetization', 'Growth', 'Operations', 'Finance'] as const
+    return cats
+      .map(c => {
+        const v = Math.round((role.effectMultipliers[c] ?? 1) * (template.effectMultipliers[c] ?? 1) * 100) / 100
+        return { cat: c, val: v }
+      })
+      .filter(m => m.val !== 1)
+  }, [role, template])
 
   return (
     <div className="screen setup-screen">
@@ -164,6 +182,18 @@ export function SetupScreen({ onConfirm }: Props) {
             {baseStats.map(s => (
               <StatPreview key={s.label} {...s} />
             ))}
+          </div>
+          <div className="setup-deck-info">
+            <span className="deck-count">{deckSize} cards in deck</span>
+            {combinedMultipliers.length > 0 && (
+              <div className="deck-multipliers">
+                {combinedMultipliers.map(m => (
+                  <span key={m.cat} className={`mult-chip ${m.val > 1 ? 'boost' : 'penalty'}`}>
+                    {m.cat}: x{m.val}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <div className="setup-name-input">
             <label>NAME:</label>

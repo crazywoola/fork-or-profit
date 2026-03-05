@@ -7,11 +7,12 @@ type Props = {
   hand: Card[]
   actionPoints: number
   maxActionPoints: number
+  effectMultipliers: Record<string, number>
   onPlayCard: (cardId: string) => void
   onEndTurn: () => void
 }
 
-export function BattleMenu({ hand, actionPoints, maxActionPoints, onPlayCard, onEndTurn }: Props) {
+export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipliers, onPlayCard, onEndTurn }: Props) {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [hoverIdx, setHoverIdx] = useState(-1)
 
@@ -74,6 +75,10 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, onPlayCard, on
         {hand.map((card, idx) => {
           const color = CATEGORY_COLORS[card.category] ?? PALETTE.textDim
           const isActive = idx === activeIdx
+          const mult = effectMultipliers[card.category] ?? 1
+          const isBoosted = mult > 1
+          const isPenalized = mult < 1
+
           return (
             <div
               key={card.id}
@@ -97,6 +102,11 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, onPlayCard, on
                   <span className="card-cost">Cost: {effectStr(card.cost)}</span>
                 )}
               </div>
+              {mult !== 1 && (
+                <div className={`card-mult-badge ${isBoosted ? 'boost' : 'penalty'}`}>
+                  x{mult}
+                </div>
+              )}
             </div>
           )
         })}

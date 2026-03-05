@@ -13,6 +13,8 @@ export type RoleArchetype = {
   actions: RoleAction[]
 }
 
+export type CardCategory = 'Open Source' | 'Monetization' | 'Growth' | 'Operations' | 'Finance'
+
 export type RoleProfile = {
   id: string
   name: string
@@ -23,6 +25,8 @@ export type RoleProfile = {
   cards: string[]
   archetype: RoleArchetype['id']
   accent: string
+  statBonuses: Record<string, number>
+  effectMultipliers: Partial<Record<CardCategory, number>>
 }
 
 export const roleArchetypes: RoleArchetype[] = [
@@ -194,7 +198,9 @@ export const roles: RoleProfile[] = [
     abilities: ['战略转向（每局 2 次）', '董事会背书', '愿景演讲'],
     cards: ['融资 A 轮', '全员信', '战略合作 MOU'],
     archetype: 'executive',
-    accent: '#ffb870'
+    accent: '#ffb870',
+    statBonuses: { cash: 2, reputation: 2 },
+    effectMultipliers: { 'Finance': 1.25, 'Operations': 1.15 },
   },
   {
     id: 'cto',
@@ -205,7 +211,9 @@ export const roles: RoleProfile[] = [
     abilities: ['架构重构', '开源贡献节', '技术布道'],
     cards: ['开源核心模块', '技术路演', '重构债务'],
     archetype: 'engineering',
-    accent: '#7fc8ff'
+    accent: '#7fc8ff',
+    statBonuses: { dev_speed: 3, community: 2 },
+    effectMultipliers: { 'Open Source': 1.3, 'Operations': 1.2 },
   },
   {
     id: 'cmo',
@@ -216,7 +224,9 @@ export const roles: RoleProfile[] = [
     abilities: ['病毒式传播', '竞品分析报告', '开发者关系计划'],
     cards: ['发布会策划', '开发者关系计划', 'PR 危机公关'],
     archetype: 'growth',
-    accent: '#ff8a9b'
+    accent: '#ff8a9b',
+    statBonuses: { reputation: 3, growth: 1 },
+    effectMultipliers: { 'Growth': 1.3, 'Monetization': 1.1 },
   },
   {
     id: 'vp-sales',
@@ -227,7 +237,9 @@ export const roles: RoleProfile[] = [
     abilities: ['大客户突破', '价格战应对', '渠道合作'],
     cards: ['企业销售', '企业销售', '渠道合作协议'],
     archetype: 'revenue',
-    accent: '#ffb870'
+    accent: '#ffb870',
+    statBonuses: { revenue: 3, cash: 1 },
+    effectMultipliers: { 'Monetization': 1.3, 'Finance': 1.15 },
   },
   {
     id: 'staff-engineer',
@@ -238,7 +250,9 @@ export const roles: RoleProfile[] = [
     abilities: ['深夜贡献', 'Hackathon 组织者', '代码审查文化'],
     cards: ['开源 RFC', '性能优化', '贡献者激励计划'],
     archetype: 'engineering',
-    accent: '#7fc8ff'
+    accent: '#7fc8ff',
+    statBonuses: { community: 3, dev_speed: 2 },
+    effectMultipliers: { 'Open Source': 1.35, 'Operations': 1.15 },
   },
   {
     id: 'pm',
@@ -249,7 +263,9 @@ export const roles: RoleProfile[] = [
     abilities: ['用户调研', '路线图发布', '功能优先级仲裁'],
     cards: ['用户故事地图', 'MVP 快速验证', '路线图发布'],
     archetype: 'product',
-    accent: '#9bffb1'
+    accent: '#9bffb1',
+    statBonuses: { reputation: 1, growth: 2 },
+    effectMultipliers: { 'Growth': 1.2, 'Monetization': 1.15 },
   },
   {
     id: 'vc',
@@ -260,7 +276,9 @@ export const roles: RoleProfile[] = [
     abilities: ['追加投资', '董事会施压', '退出威胁'],
     cards: ['投资备忘', '估值锚定', '董事会投票'],
     archetype: 'finance',
-    accent: '#ffdf6f'
+    accent: '#ffdf6f',
+    statBonuses: { cash: 4, pressure: 1 },
+    effectMultipliers: { 'Finance': 1.4, 'Operations': 1.1 },
   },
   {
     id: 'devrel',
@@ -271,7 +289,9 @@ export const roles: RoleProfile[] = [
     abilities: ['社区大使招募', '开源峰会演讲', '负面舆情处理'],
     cards: ['社区通讯', '开源大使计划', '线上 Meetup'],
     archetype: 'community',
-    accent: '#7fd7ff'
+    accent: '#7fd7ff',
+    statBonuses: { community: 4, trust: 2 },
+    effectMultipliers: { 'Open Source': 1.3, 'Growth': 1.2 },
   },
   {
     id: 'cfo',
@@ -282,7 +302,9 @@ export const roles: RoleProfile[] = [
     abilities: ['预算重分配', '现金流预测', '财务纪律'],
     cards: ['成本削减计划', '融资路演', '现金流预警'],
     archetype: 'finance',
-    accent: '#ffd777'
+    accent: '#ffd777',
+    statBonuses: { cash: 3, revenue: 1 },
+    effectMultipliers: { 'Finance': 1.35, 'Operations': 1.15 },
   },
   {
     id: 'coo',
@@ -293,7 +315,9 @@ export const roles: RoleProfile[] = [
     abilities: ['作战节奏', '流程再造', '执行强度'],
     cards: ['OKR 对齐', '运营看板', '交付加速'],
     archetype: 'operations',
-    accent: '#d3ffb8'
+    accent: '#d3ffb8',
+    statBonuses: { revenue: 1, stability: 2 },
+    effectMultipliers: { 'Operations': 1.3, 'Growth': 1.1 },
   },
   {
     id: 'cpo',
@@ -304,7 +328,9 @@ export const roles: RoleProfile[] = [
     abilities: ['产品叙事', '价值取舍', '路线聚焦'],
     cards: ['产品定位升级', '需求拆解会', '定价实验'],
     archetype: 'product',
-    accent: '#9bffb1'
+    accent: '#9bffb1',
+    statBonuses: { reputation: 2, growth: 1 },
+    effectMultipliers: { 'Growth': 1.2, 'Monetization': 1.2 },
   },
   {
     id: 'legal',
@@ -315,7 +341,9 @@ export const roles: RoleProfile[] = [
     abilities: ['合规审查', '授权策略', '风险提示'],
     cards: ['合同模板升级', '许可兼容性审查', '合规培训'],
     archetype: 'risk',
-    accent: '#ff9f7a'
+    accent: '#ff9f7a',
+    statBonuses: { reputation: 1, stability: 1 },
+    effectMultipliers: { 'Operations': 1.25, 'Finance': 1.15 },
   },
   {
     id: 'security',
@@ -326,7 +354,9 @@ export const roles: RoleProfile[] = [
     abilities: ['安全补丁', '漏洞赏金', '红队演练'],
     cards: ['安全审计', '应急响应', '可信发布'],
     archetype: 'risk',
-    accent: '#ff9f7a'
+    accent: '#ff9f7a',
+    statBonuses: { stability: 2, reputation: 1 },
+    effectMultipliers: { 'Operations': 1.3, 'Open Source': 1.1 },
   },
   {
     id: 'ai',
@@ -337,7 +367,9 @@ export const roles: RoleProfile[] = [
     abilities: ['模型迭代', '数据飞轮', '智能演示'],
     cards: ['A/B 实验', '数据标注', '智能功能上线'],
     archetype: 'data',
-    accent: '#7df0ff'
+    accent: '#7df0ff',
+    statBonuses: { dev_speed: 2, growth: 1 },
+    effectMultipliers: { 'Monetization': 1.2, 'Operations': 1.15 },
   },
   {
     id: 'cs',
@@ -348,7 +380,9 @@ export const roles: RoleProfile[] = [
     abilities: ['续费保卫战', '成功案例', '需求回流'],
     cards: ['关键客户回访', '客户成功计划', '续费激励'],
     archetype: 'revenue',
-    accent: '#ffc48b'
+    accent: '#ffc48b',
+    statBonuses: { revenue: 2, reputation: 2 },
+    effectMultipliers: { 'Monetization': 1.25, 'Growth': 1.1 },
   },
   {
     id: 'people',
@@ -359,7 +393,9 @@ export const roles: RoleProfile[] = [
     abilities: ['招聘冲刺', '文化共识', '绩效节奏'],
     cards: ['人才引进', '文化宣言', '绩效复盘'],
     archetype: 'people',
-    accent: '#c7ff9b'
+    accent: '#c7ff9b',
+    statBonuses: { stability: 2, trust: 2 },
+    effectMultipliers: { 'Operations': 1.25, 'Growth': 1.1 },
   },
   {
     id: 'growth-lead',
@@ -370,7 +406,9 @@ export const roles: RoleProfile[] = [
     abilities: ['增长实验', '留存曲线', '增长飞轮'],
     cards: ['漏斗优化', '增长黑客', '留存运营'],
     archetype: 'growth',
-    accent: '#ff8a9b'
+    accent: '#ff8a9b',
+    statBonuses: { growth: 3, revenue: 1 },
+    effectMultipliers: { 'Growth': 1.35, 'Monetization': 1.15 },
   },
   {
     id: 'bd',
@@ -381,7 +419,9 @@ export const roles: RoleProfile[] = [
     abilities: ['战略联盟', '生态联动', '渠道扩张'],
     cards: ['生态合作协议', '联合发布', '渠道试点'],
     archetype: 'revenue',
-    accent: '#ffc48b'
+    accent: '#ffc48b',
+    statBonuses: { revenue: 2, reputation: 1 },
+    effectMultipliers: { 'Monetization': 1.2, 'Growth': 1.15 },
   },
   {
     id: 'ux',
@@ -392,7 +432,9 @@ export const roles: RoleProfile[] = [
     abilities: ['体验重构', '设计系统', '用户共创'],
     cards: ['体验改版', '设计系统搭建', '用户共创营'],
     archetype: 'design',
-    accent: '#bba6ff'
+    accent: '#bba6ff',
+    statBonuses: { reputation: 3, community: 1 },
+    effectMultipliers: { 'Growth': 1.2, 'Open Source': 1.15 },
   },
   {
     id: 'qa',
@@ -403,7 +445,9 @@ export const roles: RoleProfile[] = [
     abilities: ['回归测试', '质量门禁', '缺陷洞察'],
     cards: ['自动化测试', '质量报告', '灰度发布'],
     archetype: 'engineering',
-    accent: '#7fc8ff'
+    accent: '#7fc8ff',
+    statBonuses: { stability: 2, dev_speed: 1 },
+    effectMultipliers: { 'Operations': 1.25, 'Open Source': 1.1 },
   },
   {
     id: 'sre',
@@ -414,7 +458,9 @@ export const roles: RoleProfile[] = [
     abilities: ['扩容应急', '成本优化', '可靠性指标'],
     cards: ['可观测性升级', '容灾演练', '成本优化'],
     archetype: 'engineering',
-    accent: '#7fc8ff'
+    accent: '#7fc8ff',
+    statBonuses: { stability: 3, cash: 1 },
+    effectMultipliers: { 'Operations': 1.3, 'Finance': 1.1 },
   },
   {
     id: 'support',
@@ -425,7 +471,9 @@ export const roles: RoleProfile[] = [
     abilities: ['极速响应', '知识库建设', '痛点洞察'],
     cards: ['24x7 支持', 'FAQ 发布', '关键问题回溯'],
     archetype: 'support',
-    accent: '#6fd6ff'
+    accent: '#6fd6ff',
+    statBonuses: { reputation: 2, community: 1 },
+    effectMultipliers: { 'Operations': 1.2, 'Growth': 1.15 },
   },
   {
     id: 'localization',
@@ -436,7 +484,9 @@ export const roles: RoleProfile[] = [
     abilities: ['区域落地', '多语言发布', '本地伙伴'],
     cards: ['本地化发布', '区域市场调研', '国际合作伙伴'],
     archetype: 'product',
-    accent: '#9bffb1'
+    accent: '#9bffb1',
+    statBonuses: { reputation: 1, growth: 2 },
+    effectMultipliers: { 'Growth': 1.25, 'Monetization': 1.1 },
   },
   {
     id: 'oss',
@@ -447,7 +497,9 @@ export const roles: RoleProfile[] = [
     abilities: ['维护节奏', '治理升级', '合并窗口'],
     cards: ['维护者计划', '治理提案', 'Release 候选'],
     archetype: 'community',
-    accent: '#7fd7ff'
+    accent: '#7fd7ff',
+    statBonuses: { community: 5, trust: 2 },
+    effectMultipliers: { 'Open Source': 1.4, 'Growth': 1.1 },
   },
   {
     id: 'field',
@@ -458,7 +510,9 @@ export const roles: RoleProfile[] = [
     abilities: ['现场救援', '落地模板', '需求回传'],
     cards: ['客户现场调优', '交付模板', '工程案例复盘'],
     archetype: 'revenue',
-    accent: '#ffc48b'
+    accent: '#ffc48b',
+    statBonuses: { revenue: 1, reputation: 1 },
+    effectMultipliers: { 'Monetization': 1.2, 'Operations': 1.15 },
   },
   {
     id: 'pr',
@@ -469,7 +523,9 @@ export const roles: RoleProfile[] = [
     abilities: ['危机公关', '媒体曝光', '叙事升级'],
     cards: ['媒体采访', '舆情监控', '品牌故事发布'],
     archetype: 'growth',
-    accent: '#ff8a9b'
+    accent: '#ff8a9b',
+    statBonuses: { reputation: 3, community: 1 },
+    effectMultipliers: { 'Growth': 1.25, 'Open Source': 1.1 },
   },
   {
     id: 'platform-pm',
@@ -480,7 +536,9 @@ export const roles: RoleProfile[] = [
     abilities: ['平台化路线', '生态 SDK', '兼容层'],
     cards: ['SDK 发布', '平台路线图', '兼容层设计'],
     archetype: 'product',
-    accent: '#9bffb1'
+    accent: '#9bffb1',
+    statBonuses: { community: 2, dev_speed: 1 },
+    effectMultipliers: { 'Open Source': 1.2, 'Growth': 1.2 },
   },
   {
     id: 'privacy',
@@ -491,6 +549,8 @@ export const roles: RoleProfile[] = [
     abilities: ['隐私评估', '数据最小化', '合规优先级'],
     cards: ['隐私协议更新', '数据地图', '合规审计'],
     archetype: 'risk',
-    accent: '#ff9f7a'
+    accent: '#ff9f7a',
+    statBonuses: { reputation: 2, trust: 1 },
+    effectMultipliers: { 'Operations': 1.2, 'Finance': 1.1 },
   }
 ]

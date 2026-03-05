@@ -27,7 +27,7 @@ export default function App() {
 
   const handleSetupConfirm = useCallback((s: GameSetup) => {
     setSetup(s)
-    actions.restart()
+    actions.restart({ role: s.role, template: s.template })
     actions.startRound()
     setScreen('game')
   }, [actions])

@@ -27,6 +27,8 @@ export interface Card {
   triggerEvent?: string
   risk?: string
   notes?: string
+  core?: boolean
+  archetypes?: string[]
 }
 
 export type EventCategory = 'Community' | 'Competition' | 'Ecosystem' | 'Media' | 'Tech' | 'Market' | 'Regulation'
@@ -70,4 +72,7 @@ export interface GameState {
   actionPoints: number
   maxActionPoints: number
   history: LogEntry[]
+  roleId: string
+  templateId: string
+  effectMultipliers: Record<string, number>
 }

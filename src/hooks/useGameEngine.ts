@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
-import { GameEngine } from '../engine/game'
+import { GameEngine, type GameConfig } from '../engine/game'
 import type { GameState } from '../engine/types'
 
 export function useGameEngine() {
@@ -13,6 +13,7 @@ export function useGameEngine() {
       stats: { ...engine.state.stats },
       hand: [...engine.state.hand],
       history: [...engine.state.history],
+      effectMultipliers: { ...engine.state.effectMultipliers },
     })
   }, [])
 
@@ -33,8 +34,8 @@ export function useGameEngine() {
       engineRef.current.endTurn()
       syncState()
     },
-    restart: () => {
-      engineRef.current = new GameEngine()
+    restart: (config?: GameConfig) => {
+      engineRef.current = new GameEngine(config)
       syncState()
     },
   }

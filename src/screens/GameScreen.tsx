@@ -130,6 +130,7 @@ export function GameScreen({ setup, gameState, actions, onGameOver, onNewGame }:
               hand={hand}
               actionPoints={actionPoints}
               maxActionPoints={maxActionPoints}
+              effectMultipliers={gameState.effectMultipliers}
               onPlayCard={handlePlayCard}
               onEndTurn={handleEndTurn}
             />

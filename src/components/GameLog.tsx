@@ -28,6 +28,20 @@ const LOG_COLORS: Record<LogType, string> = {
   system: PALETTE.textDim,
 }
 
+const LOG_TAG_LABELS: Record<LogType, string> = {
+  event: 'EVT',
+  action: 'ACT',
+  decision: 'DEC',
+  system: 'SYS',
+}
+
+const LOG_TAG_BG: Record<LogType, string> = {
+  event: '#4a3a10',
+  action: '#1a2e4a',
+  decision: '#3a1a30',
+  system: '#2a2e38',
+}
+
 export function GameLog({ history }: Props) {
   const [activeTab, setActiveTab] = useState<LogType | 'all'>('all')
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -52,8 +66,14 @@ export function GameLog({ history }: Props) {
         )}
         {displayed.map((entry, i) => (
           <div key={history.length - i} className="log-entry-row">
-            <PixelIcon name={LOG_ICON_NAMES[entry.type]} size={10} color={LOG_COLORS[entry.type]} />
-            <span className="log-round" style={{ color: LOG_COLORS[entry.type] }}>R{entry.round}</span>
+            <span
+              className="log-tag"
+              style={{ color: LOG_COLORS[entry.type], backgroundColor: LOG_TAG_BG[entry.type], borderColor: LOG_COLORS[entry.type] }}
+            >
+              <PixelIcon name={LOG_ICON_NAMES[entry.type]} size={10} color={LOG_COLORS[entry.type]} />
+              {LOG_TAG_LABELS[entry.type]}
+            </span>
+            <span className="log-round">R{entry.round}</span>
             <span className="log-msg">{entry.message}</span>
           </div>
         ))}
