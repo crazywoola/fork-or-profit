@@ -10,13 +10,13 @@
     {
       "binding": "DB",
       "database_name": "fork-or-profit-db",
-      "database_id": "REPLACE_WITH_YOUR_DATABASE_ID"
+      "database_id": "c656cf31-da55-47b1-8d9b-2a149ab0713f"
     }
   ],
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "REPLACE_WITH_YOUR_NAMESPACE_ID"
+      "id": "e19299b1bd044c79964a5715dee7aa0e"
     }
   ]
 }
