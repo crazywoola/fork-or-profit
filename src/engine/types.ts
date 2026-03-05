@@ -29,7 +29,11 @@ export interface Card {
   notes?: string
   core?: boolean
   archetypes?: string[]
+  /** If true, this card is removed from the game after being played (not discarded). */
+  oneshot?: boolean
 }
+
+export type GamePhase = 'early' | 'mid' | 'late' | 'any'
 
 export type EventCategory = 'Community' | 'Competition' | 'Ecosystem' | 'Media' | 'Tech' | 'Market' | 'Regulation'
 
@@ -50,6 +54,8 @@ export interface GameEvent {
   prototype?: string
   duration?: number
   triggerCondition?: string
+  /** Controls which game phase this event can appear in. Defaults to 'any'. */
+  phase?: GamePhase
 }
 
 export type LogType = 'event' | 'action' | 'decision' | 'system' | 'buff' | 'victory'

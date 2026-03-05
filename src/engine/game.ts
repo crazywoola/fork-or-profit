@@ -297,6 +297,9 @@ export class GameEngine {
     this.log('decision', `Selected: ${option.label}`)
     this.applyEffect(option.effect)
 
+    // Apply any random secondary outcomes for this event option
+    this.applyEventOptionRandom(event.id, optionIndex)
+
     // Track acquisition acceptance for 'acquisition' game mode
     if (event.id === 'acquisition-offer' && optionIndex === 0) {
       this.state.playedCardIds.push('__acquisition_accepted')
@@ -377,7 +380,12 @@ export class GameEngine {
     this.cardsPlayedThisRound++
 
     this.state.hand.splice(cardIndex, 1)
-    this.state.discardPile.push(card)
+    // oneshot cards are removed from the game entirely (not reshuffled)
+    if (!card.oneshot) {
+      this.state.discardPile.push(card)
+    } else {
+      this.log('system', `[${card.title}] is a one-time card and has been removed from the game.`)
+    }
     this.state.actionPoints -= 1
   }
 
@@ -529,14 +537,6 @@ export class GameEngine {
       return needPlayedMatches.every(t => this.state.playedCardIds.includes(lookup(t)))
     }
 
-    // "已完成 X" — check if card X has been played
-    const completedMatch = clean.match(/已完成\s*(.+)/)
-    if (completedMatch) {
-      const title = completedMatch[1].trim()
-      const card = STRATEGY_CARDS.find(c => c.title === title)
-      return card ? this.state.playedCardIds.includes(card.id) : true
-    }
-
     // "游戏开局可用" — only playable in early game
     if (clean.includes('游戏开局')) {
       return this.state.round <= 5
@@ -549,7 +549,7 @@ export class GameEngine {
       )
     }
 
-    // Handle 且 (AND) and 或 (OR) conjunctions
+    // Handle 且 (AND) and 或 (OR) conjunctions — split first, then evaluate each part
     if (clean.includes('且')) {
       return clean.split('且').every(c => this.evaluateSingleCondition(c.trim()))
     }
@@ -561,6 +561,14 @@ export class GameEngine {
   }
 
   private evaluateSingleCondition(cond: string): boolean {
+    // "已完成 X" — check if card X has been played
+    const completedMatch = cond.match(/已完成\s*(.+)/)
+    if (completedMatch) {
+      const title = completedMatch[1].trim()
+      const card = STRATEGY_CARDS.find(c => c.title === title)
+      return card ? this.state.playedCardIds.includes(card.id) : true
+    }
+
     const match = cond.match(/(\w+)\s*(>=|<=|>|<|==)\s*(\d+)/)
     if (match) {
       const [, statKey, op, valStr] = match
@@ -650,6 +658,24 @@ export class GameEngine {
           this.log('system', 'Product Hunt: did not enter Top 3.')
         }
         break
+    }
+  }
+
+  /**
+   * Called after resolveEvent to apply any random secondary outcomes tied to
+   * event option choices. This keeps probabilistic effects out of the static
+   * event data while still being triggered by a player decision.
+   */
+  applyEventOptionRandom(eventId: string, optionIndex: number) {
+    if (eventId === 'patent-lawsuit' && optionIndex === 0) {
+      // "应诉并反诉": 50% win → reputation +4; 50% lose → cash -6
+      if (Math.random() < 0.5) {
+        this.applyEffect({ reputation: 4 })
+        this.log('system', 'Patent lawsuit: won the case! Reputation +4.')
+      } else {
+        this.applyEffect({ cash: -6 })
+        this.log('system', 'Patent lawsuit: lost the case. Cash -6.')
+      }
     }
   }
 
@@ -777,11 +803,17 @@ export class GameEngine {
       }
     }
 
-    // Build candidate pool: exclude last 5 drawn events
+    // Build candidate pool: exclude last 5 drawn events + phase filtering
     const recentlyUsed = new Set(this.state.usedEventIds.slice(-5))
+    const round = this.state.round
     const candidates = GAME_EVENTS.filter(e => {
       if (recentlyUsed.has(e.id)) return false
-      if (e.triggerCondition) return this.evaluateTriggerCondition(e.triggerCondition)
+      if (e.triggerCondition && !this.evaluateTriggerCondition(e.triggerCondition)) return false
+      // Phase gate: early events fade out, late events need time to develop
+      const phase = e.phase ?? 'any'
+      if (phase === 'early' && round > 5) return false
+      if (phase === 'mid'   && round < 3) return false
+      if (phase === 'late'  && round < 7) return false
       return true
     })
 

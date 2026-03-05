@@ -382,6 +382,7 @@ export const STRATEGY_CARDS: Card[] = [
     condition: '游戏开局可用，后期 VC 不感兴趣',
     notes: '解锁「Series A」卡',
     core: true,
+    oneshot: true,
   },
   {
     id: 'series-a',
@@ -392,6 +393,7 @@ export const STRATEGY_CARDS: Card[] = [
     condition: 'revenue >= 5 或 community >= 10',
     notes: '投资人角色（若存在）获得否决权 ×2',
     archetypes: ['executive', 'finance'],
+    oneshot: true,
   },
   {
     id: 'series-b',
@@ -399,9 +401,10 @@ export const STRATEGY_CARDS: Card[] = [
     category: 'Finance',
     description: 'B 轮融资，规模化扩张资金。',
     effect: { cash: 15, control: -3, pressure: 3 },
-    condition: 'revenue >= 15 且 reputation >= 8',
+    condition: '已完成 Series A 且 revenue >= 15 且 reputation >= 8',
     notes: '解锁「IPO」胜利路径',
     archetypes: ['executive', 'finance', 'revenue'],
+    oneshot: true,
   },
   {
     id: 'strategic-investor',
@@ -421,6 +424,7 @@ export const STRATEGY_CARDS: Card[] = [
     condition: 'revenue >= 25 且 reputation >= 12 且已完成 Series B',
     notes: '触发「IPO 模式」胜利检查',
     archetypes: ['executive', 'finance'],
+    oneshot: true,
   },
   {
     id: 'token-launch',
@@ -431,6 +435,7 @@ export const STRATEGY_CARDS: Card[] = [
     risk: 'risk +3，监管事件触发概率 +40%',
     notes: 'community +3（加密社区涌入）',
     archetypes: ['data', 'growth', 'community'],
+    oneshot: true,
   },
   {
     id: 'crowdfunding',

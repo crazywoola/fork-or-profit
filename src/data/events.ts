@@ -8,6 +8,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Community',
     description: '你们的仓库在一夜之间被某个知名开发者推荐，Star 数暴涨。',
     immediateEffect: { community: 6, growth: 5 },
+    phase: 'early',
     options: [
       {
         label: '趁热打铁发 Blog',
@@ -31,18 +32,24 @@ export const GAME_EVENTS: GameEvent[] = [
     id: 'hacker-news-front-page',
     title: 'Hacker News Front Page',
     category: 'Media',
-    description: '你们的文章或产品登上 HN 首页，停留 4 小时。',
+    description: '你们的文章或产品登上 HN 首页，停留 4 小时，评论区已有 300 条回复。',
     immediateEffect: { growth: 5, community: 3 },
+    phase: 'early',
     options: [
       {
-        label: '积极互动（好评）',
-        effect: { reputation: 2, trust: 1 },
-        description: '60% 概率'
+        label: '亲自下场回复每一条技术评论',
+        effect: { reputation: 2, trust: 2, dev_speed: -1 },
+        description: '展示团队技术深度，耗费大量精力'
       },
       {
-        label: '引发争议（批评）',
-        effect: { reputation: -1, community: 1 },
-        description: '40% 概率，争议带来热度'
+        label: '只回复建设性批评，公开承认不足',
+        effect: { trust: 3, community: 2 },
+        description: '透明度赢得开发者好感'
+      },
+      {
+        label: '发布详细 roadmap 回应功能请求',
+        effect: { community: 3, pressure: 1 },
+        description: '社区振奋，但承诺会带来交付压力'
       }
     ],
     prototype: '几乎每个开发者工具的重要里程碑'
@@ -54,6 +61,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '一家主要云厂商宣布将你的开源项目 fork 并作为托管服务提供，自己不回馈上游。',
     immediateEffect: { control: -5, revenue: -3, community: 2 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '更换许可证（BSL/SSPL）',
@@ -81,6 +89,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '安全研究人员在你们产品中发现高危漏洞，已公开 CVE 编号，CVSS 评分 9.8。',
     immediateEffect: { reputation: -6, growth: -2, risk: 3 },
     duration: 2,
+    phase: 'mid',
     options: [
       {
         label: '72 小时紧急修复 + 公开 Post-Mortem',
@@ -107,6 +116,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '核心维护者公开发文：「我已经精疲力竭，无法再独自撑起这个项目」。',
     immediateEffect: { community: -5, dev_speed: -2 },
     duration: 2,
+    phase: 'early',
     options: [
       {
         label: '雇佣维护者全职投入',
@@ -133,6 +143,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '宏观环境恶化，一级市场进入寒冬，估值倍数大幅压缩，融资周期延长至 18 个月。',
     immediateEffect: { cash: 0 }, // Effect is on cards
     duration: 4,
+    phase: 'mid',
     options: [
       {
         label: '裁员 10-15%，延长跑道',
@@ -159,6 +170,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: 'Google/Microsoft/Amazon 发布一款与你的产品高度重叠的免费工具，并深度集成自家生态。',
     immediateEffect: { growth: -4, reputation: -1 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '聚焦细分市场，打差异化',
@@ -182,23 +194,24 @@ export const GAME_EVENTS: GameEvent[] = [
     id: 'developer-migration-wave',
     title: 'Developer Migration Wave',
     category: 'Community',
-    description: '行业内另一个老牌项目宣布停止维护，其用户开始大规模迁移。',
+    description: '行业内另一个老牌项目宣布停止维护，数千名开发者急需新家，社区情绪复杂。',
     immediateEffect: { community: 4, growth: 3 },
+    phase: 'early',
     options: [
       {
-        label: '发布迁移指南，主动接收用户',
-        effect: { community: 3, growth: 2, dev_speed: -1 },
-        description: '支持成本增加'
+        label: '成立专项支持小组，逐一帮助用户迁移',
+        effect: { trust: 4, community: 3, dev_speed: -2 },
+        description: '深度整合社区，但严重占用工程资源'
       },
       {
-        label: '提供一键迁移工具',
-        effect: { cash: -1, growth: 4, trust: 2 },
-        description: '降低迁移门槛'
+        label: '提供兼容层，最小化迁移摩擦',
+        effect: { cash: -1, growth: 4, stability: -1 },
+        description: '快速吸收用户，兼容代码引入技术债'
       },
       {
-        label: '什么都不做',
-        effect: { community: 2, growth: 1 },
-        description: '获得部分自然迁移'
+        label: '保持项目原方向，不做特殊适配',
+        effect: { community: 1, growth: 2, control: 1 },
+        description: '只接纳真正认可产品方向的用户'
       }
     ],
     prototype: 'CentOS -> AlmaLinux/Rocky Linux'
@@ -209,6 +222,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Media',
     description: '你们团队在 KubeCon / PyCon / JSConf 等顶级会议发表主题演讲，现场 3000 人。',
     immediateEffect: { reputation: 4, growth: 2 },
+    phase: 'any',
     options: [
       {
         label: '同步发布重大新功能',
@@ -235,6 +249,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '你们宣布将许可证从 MIT/Apache 更换为商业源码许可证（BSL/SSPL），社区哗然。',
     immediateEffect: { community: -4, trust: -3 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '坚持变更，解释商业理由',
@@ -261,6 +276,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '容器化技术爆发，你们的产品恰好与 Docker/容器生态高度兼容，用户大量涌入。',
     immediateEffect: { growth: 5, community: 3 },
     duration: 2,
+    phase: 'any',
     options: [
       {
         label: '发布官方 Docker 镜像 + 集成文档',
@@ -287,6 +303,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: 'Kubernetes 成为行业标准，你们提前完成 K8s 集成，成为默认推荐方案。',
     immediateEffect: { growth: 4, reputation: 3 },
     duration: 2,
+    phase: 'mid',
     options: [
       {
         label: '申请成为 CNCF 项目',
@@ -313,6 +330,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '生成式 AI 浪潮席卷全行业，投资人和用户都在问「你们的 AI 功能在哪里」。',
     immediateEffect: { pressure: 2 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '快速集成 LLM API，发布 AI 功能',
@@ -338,6 +356,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Community',
     description: '核心社区开发者联合声明：在公司做出某项政策调整前，停止向项目贡献代码。',
     immediateEffect: { community: -4, dev_speed: -3 },
+    phase: 'mid',
     options: [
       {
         label: '与开发者对话，满足诉求',
@@ -363,6 +382,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Regulation',
     description: '主要市场政府出台新法规，要求数据本地化或安全审查。',
     immediateEffect: { risk: 2, cash: -2 },
+    phase: 'any',
     options: [
       {
         label: '立即合规，获得认证',
@@ -389,21 +409,22 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '一家专利流氓公司或竞争对手起诉你们侵犯了 3 项软件专利，索赔 $1000 万。',
     immediateEffect: { reputation: -3, risk: 4, cash: -2 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '应诉并反诉',
-        effect: { cash: -4 }, // 50% chance rep+4, 50% chance cash-6
-        description: '高风险高回报'
+        effect: { cash: -4 }, // random outcome applied in engine: 50% rep+4, 50% cash-6
+        description: '高风险高回报：胜诉则声誉大涨，败诉则重伤现金流'
       },
       {
         label: '庭外和解',
         effect: { cash: -5, risk: -3 },
-        description: '花钱消灾'
+        description: '花钱消灾，快速止损'
       },
       {
         label: '加入开源专利保护组织（OIN）',
         effect: { cash: -1, risk: -2, community: 2 },
-        description: '长期受益'
+        description: '长期受益，同时获得社区声援'
       }
     ],
     prototype: 'Oracle vs Google (Java 专利)'
@@ -414,6 +435,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Media',
     description: '一位知名技术博主发表了关于你们产品的深度好评文章，全网转发。',
     immediateEffect: { growth: 4, reputation: 3 },
+    phase: 'any',
     options: [
       {
         label: '与博主合作，持续输出内容',
@@ -440,6 +462,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '生产环境发生重大宕机，核心服务中断超过 6 小时，影响所有付费客户。',
     immediateEffect: { reputation: -5, revenue: -2, trust: -3 },
     duration: 2,
+    phase: 'mid',
     options: [
       {
         label: '全面公开 Post-Mortem + 补偿',
@@ -466,6 +489,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '黑客攻破你们的数据库，200 万用户数据泄露，已在暗网售卖。',
     immediateEffect: { reputation: -6, trust: -4, risk: 5 },
     duration: 3,
+    phase: 'late',
     options: [
       {
         label: '72 小时内主动披露 + 通知用户',
@@ -491,6 +515,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Community',
     description: '社区核心成员正式宣布 Fork 你的项目，并获得多个知名开发者背书。',
     immediateEffect: { community: -5, control: -4 },
+    phase: 'mid',
     options: [
       {
         label: '拥抱分叉，合并优秀贡献',
@@ -516,6 +541,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Market',
     description: '一家头部科技公司的 M&A 团队发来正式收购意向，估值为当前市场价的 3 倍。',
     triggerCondition: 'reputation + revenue >= 20',
+    phase: 'late',
     options: [
       {
         label: '接受收购',
@@ -542,6 +568,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '一家 Fortune 500 公司签署 3 年期大合同，年均合同价值 $500K。',
     immediateEffect: { revenue: 8, reputation: 3, cash: 4 },
     duration: 6,
+    phase: 'late',
     options: [
       {
         label: '接受合同并满足定制需求',
@@ -565,23 +592,24 @@ export const GAME_EVENTS: GameEvent[] = [
     id: 'competitor-shutdown',
     title: 'Competitor Shutdown',
     category: 'Competition',
-    description: '你的主要竞争对手宣布关闭产品或被收购整合，大量用户急需替代方案。',
+    description: '你的主要竞争对手宣布关闭产品或被收购整合，大量用户急需替代方案，市场窗口只有 3 个月。',
     immediateEffect: { growth: 5, community: 3 },
+    phase: 'any',
     options: [
       {
-        label: '紧急发布迁移工具',
-        effect: { growth: 4, community: 2, dev_speed: -1 },
-        description: '突击开发'
+        label: '全力营销：发布深度对比文章 + 专项落地页',
+        effect: { reputation: 4, growth: 4, cash: -1 },
+        description: '趁竞品品牌受损时最大化曝光'
       },
       {
-        label: '发布对比文章，吸引用户',
-        effect: { reputation: 3, growth: 3 },
-        description: '营销攻势'
+        label: '提供限时 6 个月免费迁移套餐',
+        effect: { growth: 6, revenue: -2, trust: 2 },
+        description: '用短期让利换取大规模用户基础'
       },
       {
-        label: '提供限时免费优惠',
-        effect: { growth: 5, revenue: -1 },
-        description: '短期牺牲换用户量'
+        label: '招募竞品核心工程师加入团队',
+        effect: { dev_speed: 3, cash: -3, growth: 2 },
+        description: '收割人才，快速补齐竞品功能'
       }
     ],
     prototype: 'Parse 关闭后 Firebase 的爆发'
@@ -592,6 +620,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Ecosystem',
     description: '一个行业标准委员会（CNCF/OpenSSF/W3C）将你们的技术纳为官方标准基础。',
     immediateEffect: { reputation: 4, community: 3 },
+    phase: 'late',
     options: [
       {
         label: '主导标准制定，投入资源',
@@ -616,6 +645,7 @@ export const GAME_EVENTS: GameEvent[] = [
     title: 'Foundation Formation',
     category: 'Ecosystem',
     description: '社区和企业成员联合建议成立独立基金会管理项目，将控制权从公司转向中立机构。',
+    phase: 'late',
     options: [
       {
         label: '同意成立基金会',
@@ -642,6 +672,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: 'AWS/GCP/Azure 主动提出将你们的产品列入其 Marketplace，并提供联合销售支持。',
     immediateEffect: { revenue: 4, growth: 3 },
     duration: 3,
+    phase: 'mid',
     options: [
       {
         label: '全面合作，深度集成',
@@ -667,6 +698,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Ecosystem',
     description: 'GitHub/VS Code/JetBrains 官方宣布内置或推荐你们的工具。',
     immediateEffect: { growth: 5, community: 3, reputation: 2 },
+    phase: 'any',
     options: [
       {
         label: '优化集成体验，发布专属插件',
@@ -692,6 +724,7 @@ export const GAME_EVENTS: GameEvent[] = [
     category: 'Media',
     description: '你们首次举办年度全球开发者大会，吸引 5000 名开发者参与。',
     immediateEffect: { reputation: 4, community: 4, growth: 2 },
+    phase: 'late',
     options: [
       {
         label: '大会上宣布重大开源里程碑',
@@ -718,6 +751,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '围绕你们核心产品的第三方插件、集成、教程内容爆发式增长，形成飞轮效应。',
     immediateEffect: { community: 5, growth: 4, reputation: 3 },
     duration: 3,
+    phase: 'late',
     triggerCondition: 'Launch Plugin Ecosystem or Platform Strategy',
     options: [
       {
@@ -740,6 +774,7 @@ export const GAME_EVENTS: GameEvent[] = [
     description: '行业发生重大平台迁移（移动端→云端→AI 原生），你的产品面临需要大规模重构还是跟进的选择。',
     immediateEffect: { growth: -2, pressure: 2 },
     duration: 4,
+    phase: 'any',
     options: [
       {
         label: '全面押注新平台，重写核心',
