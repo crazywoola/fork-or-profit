@@ -1,5 +1,6 @@
-const HAN_RE = /\p{Script=Han}/gu
-const HAN_SINGLE_RE = /\p{Script=Han}/u
+// Use explicit Unicode ranges instead of \p{Script=Han} for broader runtime compatibility.
+const HAN_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g
+const HAN_SINGLE_RE = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/
 
 export function containsHan(text: string): boolean {
   return HAN_SINGLE_RE.test(text)

@@ -61,6 +61,17 @@ export function GameLog({ history }: Props) {
 
   return (
     <div className="game-log">
+      <div className="log-tabs">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            className={`log-tab ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
       <div className="log-scroll" ref={scrollRef}>
         {displayed.length === 0 && (
           <div className="log-empty">No entries yet.</div>
@@ -77,17 +88,6 @@ export function GameLog({ history }: Props) {
             <span className="log-round">R{entry.round}</span>
             <span className="log-msg">{englishText(entry.message, 'System update.')}</span>
           </div>
-        ))}
-      </div>
-      <div className="log-tabs">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`log-tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
         ))}
       </div>
     </div>

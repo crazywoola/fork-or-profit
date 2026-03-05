@@ -29,12 +29,28 @@ const STAT_LABELS: Record<string, string> = {
 export function RPGDialog({ event, onResolve }: Props) {
   const [textDone, setTextDone] = useState(false)
   const [selectedIdx, setSelectedIdx] = useState(0)
+  const [skipSignal, setSkipSignal] = useState(false)
 
   useEffect(() => {
     setTextDone(false)
     setSelectedIdx(0)
+    setSkipSignal(false)
   }, [event.id])
 
+  // When text is still animating: Enter/Space skips the animation
+  useEffect(() => {
+    if (textDone) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        setSkipSignal(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [textDone])
+
+  // After text is done: arrow keys navigate, Enter/Space confirms
   useEffect(() => {
     if (!textDone) return
     const handler = (e: KeyboardEvent) => {
@@ -101,8 +117,9 @@ export function RPGDialog({ event, onResolve }: Props) {
             <h3>{englishText(event.title, 'Critical Event')}</h3>
           </div>
 
-          <div className="rpg-dialog-text">
-            <TypeWriter text={eventDescription} speed={25} onComplete={() => setTextDone(true)} />
+          <div className="rpg-dialog-text" title="Click or press Enter to skip">
+            <TypeWriter text={eventDescription} speed={25} onComplete={() => setTextDone(true)} skipSignal={skipSignal} />
+            {!textDone && <span className="tw-skip-hint">[ click or Enter to skip ]</span>}
           </div>
 
           {textDone && (

@@ -31,6 +31,22 @@ type Props = {
   onNewGame: () => void
 }
 
+// Segmented danger stat (PRESSURE / RISK, max=10) — distinct from progress bars
+function PixelDangerStat({ label, value, max, danger }: { label: string; value: number; max: number; danger: boolean }) { return (
+  <div className={`px-danger-stat ${danger ? 'danger' : ''}`}>
+    <span className="px-danger-label">{label}</span>
+    <div className="px-danger-segments">
+      {Array.from({ length: max }).map((_, i) => (
+        <div
+          key={i}
+          className={`px-danger-seg ${i < value ? (danger ? 'filled-danger' : 'filled') : 'empty'}`}
+        />
+      ))}
+    </div>
+    <span className="px-danger-value">{value}/{max}</span>
+  </div>
+) }
+
 function eventToRoomId(category: string): string {
   switch (category) {
     case 'Tech':        return 'eng'
@@ -162,7 +178,7 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
 
   return (
     <div className="screen game-screen">
-      <div className="game-hud-left">
+      <div className={`game-hud-left ${phase === 'event' ? 'hud-dimmed' : ''}`}>
         <PixelHUD gameState={gameState} />
         <PlayerPanel
           role={setup.role}
@@ -177,18 +193,28 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
           <p>{englishText(mode?.goal, 'Stay alive and keep the company growing.')}</p>
         </div>
         <div className="hud-stats-section">
-          <PixelStatBar label="CASH"       value={stats.cash}       max={50} color={PALETTE.cashGold}      danger={stats.cash <= 3}      icon="cash" />
-          <PixelStatBar label="GROWTH"     value={stats.growth}     max={50} color={PALETTE.growthPink}                                  compact icon="growth" />
-          <PixelStatBar label="COMMUNITY"  value={stats.community}  max={50} color={PALETTE.communityTeal} danger={stats.community <= 2}  compact icon="community" />
-          <PixelStatBar label="REVENUE"    value={stats.revenue}    max={50} color={PALETTE.orange}                                       compact icon="revenue" />
-          <PixelStatBar label="REPUTATION" value={stats.reputation} max={50} color={PALETTE.accentGold}                                   compact icon="reputation" />
-          <PixelStatBar label="PRESSURE"   value={stats.pressure}   max={10} color={PALETTE.dangerRed}     danger={stats.pressure >= 7}   compact icon="pressure" />
-          <PixelStatBar label="RISK"       value={stats.risk}       max={10} color={PALETTE.dangerRed}     danger={stats.risk >= 7}        compact icon="risk" />
+          <PixelStatBar label="CASH"      value={stats.cash}      max={50} color={PALETTE.cashGold}      danger={stats.cash <= 3}     icon="cash" />
+          <PixelStatBar label="COMMUNITY" value={stats.community} max={50} color={PALETTE.communityTeal} danger={stats.community <= 2} icon="community" />
+          <div className="hud-danger-stats">
+            <PixelDangerStat label="PRESSURE" value={stats.pressure} max={10} danger={stats.pressure >= 7} />
+            <PixelDangerStat label="RISK"     value={stats.risk}     max={10} danger={stats.risk >= 7} />
+          </div>
+          <button className="hud-expand-stats-btn" onClick={() => setShowStats(true)}>
+            <PixelIcon name="star" size={8} color={PALETTE.textDim} />
+            GROWTH · REVENUE · REPUTATION · MORE [S]
+          </button>
         </div>
         <div className="hud-meta-row">
           <span className="hud-burn-rate">BURN: {gameState.burnRate}/round</span>
           {activeBoneCount > 0 && (
-            <span className="hud-buff-count">{activeBoneCount} active effect(s)</span>
+            <span className="hud-buff-count" title={gameState.activeEffects.map(e => {
+              const label = englishText(e.label, 'Effect')
+              return e.remainingRounds > 0 && e.remainingRounds < 999
+                ? `${label} (${e.remainingRounds}r left)`
+                : label
+            }).join('\n')}>
+              ✦ {activeBoneCount} effect{activeBoneCount > 1 ? 's' : ''} active
+            </span>
           )}
         </div>
         <div className="hud-shortcuts">
@@ -244,7 +270,7 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
         </div>
       </div>
 
-      <div className="game-hud-right">
+      <div className={`game-hud-right ${phase === 'event' ? 'hud-dimmed' : ''}`}>
         <MiniMap activeRoomId={activeRoomId} highlightRoomId={highlightRoomId} />
         {selectedRoom && (
           <div className="room-info-box">

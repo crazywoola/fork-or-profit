@@ -30,6 +30,10 @@
 
   --pixel-border: 2px solid var(--text-muted);
   --pixel-shadow: 3px 3px 0px var(--black);
+
+  /* Golden ratio split for center gameplay area (canvas : dialog = 1.618 : 1) */
+  --center-canvas-fr: 1.618fr;
+  --center-dialog-fr: 1fr;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,7 +77,8 @@ body {
 
 .title-screen {
   cursor: pointer;
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
@@ -202,12 +207,31 @@ body {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, opacity 0.2s;
+  position: relative;
+  opacity: 0.75;
 }
 
 .setup-panel.active {
   border-color: var(--highlight);
-  box-shadow: 0 0 12px rgba(254, 231, 97, 0.15);
+  box-shadow: 0 0 12px rgba(254, 231, 97, 0.2);
+  opacity: 1;
+}
+
+/* Colored top accent bar on active panel */
+.setup-panel.active::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  height: 4px;
+  background: var(--highlight);
+}
+
+.setup-panel:not(.active):hover {
+  opacity: 0.9;
+  border-color: var(--text-dim);
 }
 
 .setup-panel h2 {
@@ -498,13 +522,15 @@ body {
 .game-center {
   grid-column: 2;
   grid-row: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, var(--center-canvas-fr)) minmax(0, var(--center-dialog-fr));
+  height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 
 .game-world {
-  flex: 1;
+  grid-row: 2;
   min-height: 0;
   overflow: hidden;
   background: var(--bg);
@@ -518,13 +544,19 @@ body {
 }
 
 .game-bottom-panel {
-  flex-shrink: 0;
-  max-height: 45vh;
-  overflow-y: auto;
+  grid-row: 3;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .game-bottom-panel:empty {
   display: none;
+}
+
+/* ─── Event phase focus: subtly dim side panels ─── */
+.hud-dimmed {
+  opacity: 0.55;
+  transition: opacity 0.3s;
 }
 
 /* ─── HUD Left ─── */
@@ -842,7 +874,10 @@ body {
 
 .rpg-dialog-overlay {
   display: flex;
+  align-items: stretch;
   justify-content: center;
+  height: 100%;
+  min-height: 0;
 }
 
 .rpg-dialog {
@@ -851,7 +886,9 @@ body {
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
   display: flex;
   width: 100%;
-  max-height: 50vh;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
   padding: 0;
 }
 
@@ -1003,6 +1040,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .battle-ap-bar {
@@ -1472,11 +1512,12 @@ body {
 
 .gameover-screen {
   background: var(--bg);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: hidden;
 }
 
 .gameover-bg-canvas {
@@ -1489,8 +1530,7 @@ body {
 }
 
 .gameover-content {
-  position: absolute;
-  inset: 0;
+  position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
@@ -1498,10 +1538,12 @@ body {
   justify-content: center;
   gap: 18px;
   max-width: 560px;
-  width: min(92%, 560px);
-  margin: 0 auto;
+  width: min(92vw, 560px);
+  margin: 0;
   padding: 20px 0;
   text-align: center;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .gameover-title {
@@ -1722,7 +1764,7 @@ body {
 
 .log-tabs {
   display: flex;
-  border-top: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -1753,8 +1795,8 @@ body {
 .log-tab.active {
   color: var(--highlight);
   background: var(--dialog);
-  border-top: 2px solid var(--highlight);
-  margin-top: -2px;
+  border-bottom: 2px solid var(--highlight);
+  margin-bottom: -2px;
 }
 
 .log-entry-row {
@@ -2096,4 +2138,131 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════════
+   PIXEL DANGER STAT (PRESSURE / RISK segments)
+   ═══════════════════════════════════════════ */
+
+.hud-danger-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.px-danger-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 90px;
+}
+
+.px-danger-label {
+  font-family: var(--font-title);
+  font-size: 0.48rem;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+
+.px-danger-stat.danger .px-danger-label {
+  color: var(--red);
+  animation: danger-pulse 1s infinite;
+}
+
+.px-danger-segments {
+  display: flex;
+  gap: 2px;
+}
+
+.px-danger-seg {
+  flex: 1;
+  height: 10px;
+  border: 1px solid var(--text-muted);
+}
+
+.px-danger-seg.filled {
+  background: #8a5a1a;
+  border-color: var(--gold);
+}
+
+.px-danger-seg.filled-danger {
+  background: var(--red);
+  border-color: #ff6060;
+}
+
+.px-danger-seg.empty {
+  background: var(--black);
+}
+
+.px-danger-value {
+  font-family: var(--font-title);
+  font-size: 0.42rem;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.px-danger-stat.danger .px-danger-value {
+  color: var(--red);
+}
+
+/* ─── HUD expand stats button ─── */
+.hud-expand-stats-btn {
+  font-family: var(--font-title);
+  font-size: 0.4rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--text-muted);
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  box-shadow: none;
+  width: 100%;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.hud-expand-stats-btn:hover {
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+/* ─── TypeWriter skip hint ─── */
+.tw-skip-hint {
+  font-family: var(--font-title);
+  font-size: 0.4rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+/* ─── BattleMenu card-detail head (refactored) ─── */
+.battle-card-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.battle-card-detail-head h4 {
+  font-family: var(--font-title);
+  font-size: 0.6rem;
+  color: var(--text);
+  line-height: 1.45;
+  flex: 1;
+  margin: 0;
+}
+
+/* ─── Log tab active — top border (now tab is at top of list) ─── */
+.log-tab.active {
+  border-bottom: 2px solid var(--highlight);
+  margin-bottom: -2px;
+  border-top: none;
+  margin-top: 0;
 }

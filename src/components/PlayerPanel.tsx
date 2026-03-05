@@ -26,7 +26,7 @@ export function PlayerPanel({ role, template, companyName }: Props) {
         </div>
       </div>
       <div className="player-perks">
-        {role.perks.slice(0, 2).map((p, i) => (
+        {role.perks.slice(0, 3).map((p, i) => (
           <span key={i} className="player-perk">
             <PixelIcon name="star" size={8} color={PALETTE.accentGold} />
             {englishText(p, `Perk ${i + 1}`)}

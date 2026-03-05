@@ -5,9 +5,10 @@ type Props = {
   speed?: number
   onComplete?: () => void
   className?: string
+  skipSignal?: boolean
 }
 
-export function TypeWriter({ text, speed = 30, onComplete, className }: Props) {
+export function TypeWriter({ text, speed = 30, onComplete, className, skipSignal }: Props) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
 
@@ -28,6 +29,16 @@ export function TypeWriter({ text, speed = 30, onComplete, className }: Props) {
     }, speed)
     return () => clearInterval(id)
   }, [text, speed])
+
+  // External skip trigger (keyboard shortcut from parent)
+  useEffect(() => {
+    if (skipSignal && !done) {
+      setDisplayed(text)
+      setDone(true)
+      onComplete?.()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipSignal])
 
   const skip = useCallback(() => {
     if (!done) {

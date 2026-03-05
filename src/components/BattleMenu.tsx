@@ -112,27 +112,24 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipli
               <CardCategoryIcon category={activeCard.category} size={10} />
               {activeCard.category}
             </span>
+            <h4>{activeCard.title}</h4>
             <span className={`battle-card-detail-status ${activePlayable ? 'ok' : 'warn'}`}>
-              {activePlayable ? 'Playable' : 'Not playable'}
+              {activePlayable ? 'READY' : 'LOCKED'}
             </span>
           </div>
-          <h4>{activeCard.title}</h4>
-          <p className="battle-card-detail-desc">{englishText(activeCard.description, 'Play this strategy to shift your company stats.')}</p>
           <div className="battle-card-detail-meta">
-            <span className="battle-card-detail-effect">Effect: {effectStr(activeCard.effect)}</span>
-            {activeCard.cost && (
-              <span className="battle-card-detail-cost">Cost: {effectStr(activeCard.cost)}</span>
-            )}
             {!activePlayable && activeCard.condition && (
-              <span className="battle-card-detail-condition">Condition: {englishText(activeCard.condition, 'Requirements not met')}</span>
+              <span className="battle-card-detail-condition">
+                Requires: {englishText(activeCard.condition, 'Requirements not met')}
+              </span>
             )}
             {activeMultiplier !== 1 && (
               <span className={`battle-card-detail-mult ${activeMultiplier > 1 ? 'boost' : 'penalty'}`}>
-                Multiplier x{activeMultiplier}
+                {activeMultiplier > 1 ? '▲' : '▼'} x{activeMultiplier} {activeCard.category} bonus active
               </span>
             )}
           </div>
-          <p className="battle-card-detail-tip">[Enter] Play Selected Card · [1-9] Quick Play</p>
+          <p className="battle-card-detail-tip">[Enter] Play · [←→] Switch · [1-9] Quick Play · [E] End Turn</p>
         </div>
       )}
 
@@ -160,7 +157,7 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipli
               {/* Lock indicator for cards with unmet conditions */}
               {!playable && card.condition && (
                 <div className="card-lock-overlay">
-                  <span className="card-lock-icon">🔒</span>
+                  <PixelIcon name="lock" size={16} color={PALETTE.dangerRed} />
                   <span className="card-lock-reason">{englishText(card.condition, 'Requirements not met')}</span>
                 </div>
               )}

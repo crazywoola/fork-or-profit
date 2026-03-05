@@ -54,6 +54,7 @@ const ICONS: Record<string, IconDef> = {
   'ap-gem':          { paths: 'M8 2 L13 8 L8 14 L3 8Z M8 4 L11 8 L8 12 L5 8Z', defaultColor: PALETTE.engBlue },
 
   // --- UI icons ---
+  'lock':            { paths: 'M5 7 L5 5 C5 2 11 2 11 5 L11 7 L12 7 L12 14 L4 14 L4 7Z M6 7 L10 7 L10 5 C10 3 6 3 6 5Z M7 10 L9 10 L9 12 L7 12Z', defaultColor: PALETTE.dangerRed },
   'dice':            { paths: 'M2 2 L14 2 L14 14 L2 14Z M5 5 L6 5 L6 6 L5 6Z M10 5 L11 5 L11 6 L10 6Z M7 8 L9 8 L9 9 L7 9Z M5 10 L6 10 L6 11 L5 11Z M10 10 L11 10 L11 11 L10 11Z', defaultColor: PALETTE.text },
   'play':            { paths: 'M4 2 L13 8 L4 14Z', defaultColor: PALETTE.healthGreen },
   'close':           { paths: 'M3 3 L5 3 L8 6 L11 3 L13 3 L13 5 L10 8 L13 11 L13 13 L11 13 L8 10 L5 13 L3 13 L3 11 L6 8 L3 5Z', defaultColor: PALETTE.dangerRed },
