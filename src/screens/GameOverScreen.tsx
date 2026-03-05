@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { sfxVictory, sfxGameOver } from '../audio/sfx'
 import { PALETTE } from '../pixel/palette'
 import { PixelStatBar } from '../components/PixelStatBar'
 import { PixelIcon } from '../components/PixelIcon'
@@ -96,6 +97,11 @@ export function GameOverScreen({ result, gameState, onRestart, onNewGame }: Prop
 
   const isWin = result === 'win'
   const stats = gameState?.stats
+
+  useEffect(() => {
+    if (isWin) sfxVictory()
+    else sfxGameOver()
+  }, [isWin])
 
   return (
     <div className={`screen gameover-screen ${isWin ? 'win' : 'lose'}`}>

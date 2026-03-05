@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { roles } from '../data/roles'
 import { companyTemplates } from '../data/company-templates'
-import { gameModes } from '../data/game'
+import { gameModes, organizations } from '../data/game'
 import { STRATEGY_CARDS } from '../data/cards'
 import { PALETTE } from '../pixel/palette'
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from '../components/PixelIcon'
@@ -9,6 +9,24 @@ import { englishText, roleNameFromId, roleTitleFromId, titleFromId } from '../ut
 import type { GameSetup } from '../App'
 
 type Props = { onConfirm: (setup: GameSetup) => void }
+
+const RECOMMENDED_COMBOS: Record<string, string[]> = {
+  mongodb: ['ipo', 'open-core'],
+  redis: ['open-core', 'survival'],
+  redhat: ['acquisition', 'survival'],
+  dify: ['open-core', 'ipo'],
+}
+
+const BEGINNER_ROLES = new Set(['ceo', 'cto', 'pm'])
+const BEGINNER_TEMPLATES = new Set(['mongodb', 'redis', 'dify'])
+
+const STAT_TOOLTIPS: Record<string, string> = {
+  CASH: 'Money in the bank. Reach 0 and the company dies.',
+  COMMUNITY: 'Open-source community strength. Reach 0 and the project dies.',
+  GROWTH: 'User adoption momentum. Needed for Legend mode.',
+  REPUTATION: 'Brand trust with customers. Needed for IPO mode.',
+  REVENUE: 'Monthly income. Offsets burn rate each round.',
+}
 
 const namePrefixes = ['Aurora', 'Nimbus', 'Vertex', 'Pulse', 'Atlas', 'Nova', 'Cobalt', 'Lattice']
 const nameSuffixes = ['Labs', 'Works', 'Cloud', 'Systems', 'Studio', 'Forge', 'Core', 'Dynamics']
@@ -19,10 +37,18 @@ function randomName() {
   return `${p} ${s}`
 }
 
-function StatPreview({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+function StatPreview({ label, value, max, color, tooltip, onHover, onLeave }: {
+  label: string; value: number; max: number; color: string;
+  tooltip?: string; onHover?: (label: string) => void; onLeave?: () => void;
+}) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100))
   return (
-    <div className="setup-stat-row">
+    <div
+      className="setup-stat-row"
+      onMouseEnter={() => onHover?.(label)}
+      onMouseLeave={onLeave}
+      title={tooltip}
+    >
       <span className="setup-stat-label">{label}</span>
       <div className="setup-stat-track">
         <div className="setup-stat-fill" style={{ width: `${pct}%`, backgroundColor: color }} />
@@ -60,12 +86,37 @@ export function SetupScreen({ onConfirm }: Props) {
   const [roleIdx, setRoleIdx] = useState(0)
   const [templateIdx, setTemplateIdx] = useState(0)
   const [modeIdx, setModeIdx] = useState(0)
+  const [orgIdx, setOrgIdx] = useState(0)
   const [companyName, setCompanyName] = useState(companyTemplates[0].name)
   const [activePanel, setActivePanel] = useState<'role' | 'company' | 'mode'>('role')
+  const [hoveredStat, setHoveredStat] = useState<string | null>(null)
 
   const role = roles[roleIdx]
   const template = companyTemplates[templateIdx]
   const mode = gameModes[modeIdx]
+  const org = organizations[orgIdx]
+
+  const isRecommendedCombo = useMemo(() => {
+    const combos = RECOMMENDED_COMBOS[template.id]
+    return combos?.includes(mode.id) ?? false
+  }, [template.id, mode.id])
+
+  const handleQuickStart = useCallback(() => {
+    const mongoIdx = companyTemplates.findIndex(t => t.id === 'mongodb')
+    const ceoIdx = roles.findIndex(r => r.id === 'ceo')
+    const survivalIdx = gameModes.findIndex(m => m.id === 'survival')
+    if (mongoIdx >= 0) setTemplateIdx(mongoIdx)
+    if (ceoIdx >= 0) setRoleIdx(ceoIdx)
+    if (survivalIdx >= 0) setModeIdx(survivalIdx)
+    setCompanyName('Nova Systems')
+    onConfirm({
+      role: roles[ceoIdx >= 0 ? ceoIdx : 0],
+      template: companyTemplates[mongoIdx >= 0 ? mongoIdx : 0],
+      companyName: 'Nova Systems',
+      gameModeId: gameModes[survivalIdx >= 0 ? survivalIdx : 0].id,
+      organizationId: 'flat',
+    })
+  }, [onConfirm])
 
   const handleRandomRole = useCallback(() => {
     setRoleIdx(Math.floor(Math.random() * roles.length))
@@ -81,6 +132,7 @@ export function SetupScreen({ onConfirm }: Props) {
     handleRandomRole()
     handleRandomCompany()
     setModeIdx(Math.floor(Math.random() * gameModes.length))
+    setOrgIdx(Math.floor(Math.random() * organizations.length))
   }, [handleRandomRole, handleRandomCompany])
 
   const handleConfirm = useCallback(() => {
@@ -89,8 +141,9 @@ export function SetupScreen({ onConfirm }: Props) {
       template,
       companyName: companyName.trim() || template.name,
       gameModeId: mode.id,
+      organizationId: org.id,
     })
-  }, [role, template, companyName, mode, onConfirm])
+  }, [role, template, companyName, mode, org, onConfirm])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -161,6 +214,7 @@ export function SetupScreen({ onConfirm }: Props) {
       <div className="setup-panels">
         {/* ── Role ── */}
         <div className={`setup-panel ${activePanel === 'role' ? 'active' : ''}`} onClick={() => setActivePanel('role')}>
+          {BEGINNER_ROLES.has(role.id) && <span className="recommended-badge">BEGINNER</span>}
           <h2>ROLE</h2>
           <div className="setup-selector">
             <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setRoleIdx(i => (i - 1 + roles.length) % roles.length) }}>
@@ -192,6 +246,7 @@ export function SetupScreen({ onConfirm }: Props) {
 
         {/* ── Company ── */}
         <div className={`setup-panel ${activePanel === 'company' ? 'active' : ''}`} onClick={() => setActivePanel('company')}>
+          {BEGINNER_TEMPLATES.has(template.id) && <span className="recommended-badge">RECOMMENDED</span>}
           <h2>COMPANY</h2>
           <div className="setup-selector">
             <button className="arrow-btn" onClick={(e) => {
@@ -216,7 +271,18 @@ export function SetupScreen({ onConfirm }: Props) {
           </div>
           <p className="role-focus">{englishText(template.summary, 'A distinct company archetype with different trade-offs.')}</p>
           <div className="setup-stats-preview">
-            {baseStats.map(s => <StatPreview key={s.label} {...s} />)}
+            {baseStats.map(s => (
+              <StatPreview
+                key={s.label}
+                {...s}
+                tooltip={STAT_TOOLTIPS[s.label]}
+                onHover={setHoveredStat}
+                onLeave={() => setHoveredStat(null)}
+              />
+            ))}
+            {hoveredStat && STAT_TOOLTIPS[hoveredStat] && (
+              <div className="stat-tooltip-inline">{STAT_TOOLTIPS[hoveredStat]}</div>
+            )}
           </div>
           <div className="setup-deck-info">
             <span className="deck-count">{deckSize} cards in deck</span>
@@ -289,16 +355,41 @@ export function SetupScreen({ onConfirm }: Props) {
               </div>
             ))}
           </div>
+
+          <div className="org-selector">
+            <span className="org-selector-label">ORGANIZATION</span>
+            <div className="org-selector-list">
+              {organizations.map((o, i) => (
+                <div
+                  key={o.id}
+                  className={`mode-item ${i === orgIdx ? 'selected' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); setOrgIdx(i) }}
+                >
+                  <span className="mode-item-name">{o.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="org-rule-box">
+              <span className="org-rule-label">Rule</span>
+              <p className="org-rule-text">{org.specialRule}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="setup-footer">
+        <button className="pixel-btn" onClick={handleQuickStart}>
+          <PixelIcon name="play" size={10} /> QUICK START
+        </button>
         <button className="pixel-btn" onClick={handleRandomAll}>
           <PixelIcon name="dice" size={10} /> RANDOM ALL
         </button>
         <button className="pixel-btn primary" onClick={handleConfirm}>
           <PixelIcon name="play" size={10} /> START GAME
         </button>
+        {isRecommendedCombo && (
+          <span className="recommended-combo-hint">Good combo for this archetype!</span>
+        )}
       </div>
     </div>
   )

@@ -88,12 +88,38 @@ export interface ActiveEffect {
   burnRateDelta?: number
 }
 
+// ── Card effect preview (aggregated total impact) ────────────────────────────
+
+export interface CardPreview {
+  baseEffect: StatEffect
+  bonusEffect: StatEffect
+  templateBonus: StatEffect
+  costEffect: StatEffect
+  totalEffect: StatEffect
+  multiplier: number
+  synergyBonus: StatEffect | null
+  synergyLabel: string | null
+}
+
+// ── Round summary ────────────────────────────────────────────────────────────
+
+export interface RoundSummary {
+  round: number
+  revenue: number
+  burnRate: number
+  netIncome: number
+  statDeltas: StatEffect
+  expiredEffects: string[]
+  newEffects: string[]
+  previousStats: Record<StatId, number>
+}
+
 // ── Game state ───────────────────────────────────────────────────────────────
 
 export interface GameState {
   stats: Record<StatId, number>
   round: number
-  phase: 'event' | 'action' | 'resolution'
+  phase: 'event' | 'action' | 'resolution' | 'summary'
   activeEvent: GameEvent | null
   hand: Card[]
   deck: Card[]
@@ -114,4 +140,10 @@ export interface GameState {
   burnRate: number              // cash consumed per round (dynamic)
   victory: 'none' | 'win' | 'lose'
   victoryReason: string
+
+  // ── Round summary & tracking ──────────────────────────────────────────────
+  roundSummary: RoundSummary | null
+  cardsPlayedThisRound: string[] // card IDs played in current round (synergy tracking)
+  previousRoundStats: Record<StatId, number> | null // stats at start of round (for trend arrows)
+  gameStage: 'seed' | 'growth' | 'scale'  // phase-specific mechanics
 }

@@ -1,9 +1,11 @@
 import {
   Card,
   CardCategory,
+  CardPreview,
   GameEvent,
   GameState,
   LogType,
+  RoundSummary,
   StatEffect,
   StatId,
   ActiveEffect,
@@ -11,6 +13,7 @@ import {
 } from './types'
 import { STRATEGY_CARDS } from '../data/cards'
 import { GAME_EVENTS } from '../data/events'
+import { organizations } from '../data/game'
 import type { RoleProfile } from '../data/roles'
 import type { CompanyTemplate } from '../data/company-templates'
 
@@ -46,7 +49,7 @@ const MAX_STATS: Record<StatId, number> = {
 
 // ── Card bonus effects from "notes" field (immediate, applied when card is played) ──
 
-const CARD_IMMEDIATE_BONUS: Partial<Record<string, StatEffect>> = {
+export const CARD_IMMEDIATE_BONUS: Partial<Record<string, StatEffect>> = {
   'fully-open-source':    { trust: 2 },
   'dual-license':         { control: 2 },
   'dev-docs-push':        { trust: 1 },
@@ -140,7 +143,47 @@ const CARD_ACTIVE_EFFECTS: Partial<Record<string, ActiveEffectTemplate[]>> = {
     label: 'Open Core Dual Track: +1 community per round',
     statEffects: { community: 1 },
   }],
+  'automate-operations': [{
+    sourceCardId: 'automate-operations',
+    type: 'burn_rate_delta',
+    remainingRounds: -1,
+    label: 'Automation Savings: burn rate -1',
+    burnRateDelta: -1,
+  }],
+  'cloud-cost-optimization': [{
+    sourceCardId: 'cloud-cost-optimization',
+    type: 'burn_rate_delta',
+    remainingRounds: -1,
+    label: 'Cloud Cost Savings: burn rate -1',
+    burnRateDelta: -1,
+  }],
 }
+
+// ── Card synergy definitions (playing A then B in same round triggers bonus) ─
+
+export const CARD_SYNERGIES: Array<{
+  cardA: string
+  cardB: string
+  bonus: StatEffect
+  label: string
+}> = [
+  { cardA: 'developer-evangelism', cardB: 'hacker-news-launch', bonus: { growth: 3 }, label: 'PR Blitz: extra growth +3' },
+  { cardA: 'hacker-news-launch', cardB: 'developer-evangelism', bonus: { growth: 3 }, label: 'PR Blitz: extra growth +3' },
+  { cardA: 'open-core', cardB: 'enterprise-edition', bonus: { revenue: 2, community: 1 }, label: 'Dual Track Synergy: revenue +2, community +1' },
+  { cardA: 'enterprise-edition', cardB: 'open-core', bonus: { revenue: 2, community: 1 }, label: 'Dual Track Synergy: revenue +2, community +1' },
+  { cardA: 'sdk-release', cardB: 'platform-strategy', bonus: { growth: 2, community: 2 }, label: 'Platform Launch Synergy: growth +2, community +2' },
+  { cardA: 'platform-strategy', cardB: 'sdk-release', bonus: { growth: 2, community: 2 }, label: 'Platform Launch Synergy: growth +2, community +2' },
+  { cardA: 'hire-engineers', cardB: 'improve-ci-cd', bonus: { dev_speed: 2 }, label: 'Engineering Momentum: dev_speed +2' },
+  { cardA: 'improve-ci-cd', cardB: 'hire-engineers', bonus: { dev_speed: 2 }, label: 'Engineering Momentum: dev_speed +2' },
+  { cardA: 'security-audit', cardB: 'tech-debt-cleanup', bonus: { stability: 2, risk: -1 }, label: 'Clean Foundation: stability +2, risk -1' },
+  { cardA: 'tech-debt-cleanup', cardB: 'security-audit', bonus: { stability: 2, risk: -1 }, label: 'Clean Foundation: stability +2, risk -1' },
+  { cardA: 'free-tier', cardB: 'referral-program', bonus: { growth: 3 }, label: 'Viral Loop: growth +3' },
+  { cardA: 'referral-program', cardB: 'free-tier', bonus: { growth: 3 }, label: 'Viral Loop: growth +3' },
+  { cardA: 'community-events', cardB: 'contributor-program', bonus: { community: 2, trust: 1 }, label: 'Community Rally: community +2, trust +1' },
+  { cardA: 'contributor-program', cardB: 'community-events', bonus: { community: 2, trust: 1 }, label: 'Community Rally: community +2, trust +1' },
+  { cardA: 'consulting-services', cardB: 'enterprise-support', bonus: { revenue: 2, trust: 1 }, label: 'Full Service: revenue +2, trust +1' },
+  { cardA: 'enterprise-support', cardB: 'consulting-services', bonus: { revenue: 2, trust: 1 }, label: 'Full Service: revenue +2, trust +1' },
+]
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -148,6 +191,7 @@ export type GameConfig = {
   role: RoleProfile
   template: CompanyTemplate
   gameModeId: string
+  organizationId: string
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -169,19 +213,34 @@ function buildDeck(role: RoleProfile): Card[] {
     [deck[i], deck[j]] = [deck[j], deck[i]]
   }
 
+  // Guarantee at least 1 revenue-generating card in the top 4 (first hand)
+  const revenueCardIds = new Set(['consulting-services', 'open-core', 'partner-program', 'enterprise-support', 'crowdfunding'])
+  const topSlice = deck.slice(-4)
+  const hasRevenue = topSlice.some(c => revenueCardIds.has(c.id))
+  if (!hasRevenue) {
+    const revIdx = deck.findIndex(c => revenueCardIds.has(c.id))
+    if (revIdx >= 0 && revIdx < deck.length - 4) {
+      const last = deck.length - 1
+      ;[deck[revIdx], deck[last]] = [deck[last], deck[revIdx]]
+    }
+  }
+
   return deck
 }
 
 function computeMultipliers(
   role: RoleProfile,
   template: CompanyTemplate,
+  organizationId?: string,
 ): Record<string, number> {
   const categories: CardCategory[] = ['Open Source', 'Monetization', 'Growth', 'Operations', 'Finance']
+  const org = organizations.find(o => o.id === organizationId)
   const result: Record<string, number> = {}
   for (const cat of categories) {
     const rm = role.effectMultipliers[cat] ?? 1
     const cm = template.effectMultipliers[cat] ?? 1
-    result[cat] = Math.round(rm * cm * 100) / 100
+    const om = org?.cardCategoryMultipliers[cat] ?? 1
+    result[cat] = Math.round(rm * cm * om * 100) / 100
   }
   return result
 }
@@ -226,11 +285,15 @@ export class GameEngine {
 
     const deck = this.config ? buildDeck(this.config.role) : [...STRATEGY_CARDS]
     const multipliers = this.config
-      ? computeMultipliers(this.config.role, this.config.template)
+      ? computeMultipliers(this.config.role, this.config.template, this.config.organizationId)
       : { 'Open Source': 1, 'Monetization': 1, 'Growth': 1, 'Operations': 1, 'Finance': 1 }
 
     // Finance archetype starts with lower burn rate (fiscal discipline)
     const burnRate = this.config?.role.archetype === 'finance' ? 1 : 2
+
+    // Organization modifiers for action points
+    const org = this.config ? organizations.find(o => o.id === this.config!.organizationId) : null
+    const orgAP = org?.maxActionPoints ?? 3
 
     return {
       stats,
@@ -240,8 +303,8 @@ export class GameEngine {
       hand: [],
       deck,
       discardPile: [],
-      actionPoints: 3,
-      maxActionPoints: 3,
+      actionPoints: orgAP,
+      maxActionPoints: orgAP,
       history: [],
       roleId: this.config?.role.id ?? '',
       templateId: this.config?.template.id ?? '',
@@ -254,6 +317,10 @@ export class GameEngine {
       burnRate,
       victory: 'none',
       victoryReason: '',
+      roundSummary: null,
+      cardsPlayedThisRound: [],
+      previousRoundStats: null,
+      gameStage: 'seed',
     }
   }
 
@@ -261,12 +328,24 @@ export class GameEngine {
 
   startRound() {
     this.cardsPlayedThisRound = 0
+    this.state.cardsPlayedThisRound = []
+    this.state.roundSummary = null
+
+    // Snapshot stats at round start for trend tracking
+    this.state.previousRoundStats = { ...this.state.stats }
+
+    // Update game stage based on round number
+    const r = this.state.round
+    this.state.gameStage = r <= 5 ? 'seed' : r <= 12 ? 'growth' : 'scale'
 
     // Apply ongoing buffs
     this.tickEffects()
 
     // Role passives
     this.applyRolePassives()
+
+    // Phase-specific mechanics
+    this.applyGameStageEffects()
 
     // Template: Dify Fast-Track (every 3rd round: +1 action point)
     if (
@@ -278,13 +357,29 @@ export class GameEngine {
       this.log('buff', 'Dify Fast-Track: +1 extra action point')
     }
 
+    // Stat interaction: dev_speed >= 6 grants extra card draw
+    if (this.state.stats.dev_speed >= 6) {
+      this.log('buff', '[Stat Bonus] High dev speed: +1 card draw this round')
+    }
+
     const event = this.drawEvent()
     this.state.activeEvent = event
     this.state.phase = 'event'
     this.log('event', `Round ${this.state.round} started. Event: ${event.title}`)
 
     if (event.immediateEffect) {
-      this.applyEffect(event.immediateEffect)
+      // Stat interaction: stability >= 8 reduces negative tech event damage by 30%
+      if (
+        this.state.stats.stability >= 8 &&
+        event.category === 'Tech' &&
+        this.hasNegativeEffect(event.immediateEffect)
+      ) {
+        const reduced = this.reduceNegativeEffects(event.immediateEffect, 0.3)
+        this.applyEffect(reduced)
+        this.log('buff', '[Stat Bonus] High stability: tech event damage reduced by 30%')
+      } else {
+        this.applyEffect(event.immediateEffect)
+      }
     }
   }
 
@@ -375,8 +470,22 @@ export class GameEngine {
     // Apply template special ability
     this.applyTemplateAbility(card)
 
+    // Stat interaction: trust >= 8 halves community loss from Monetization cards
+    if (card.category === 'Monetization' && this.state.stats.trust >= 8) {
+      const comLoss = card.effect.community ?? 0
+      if (comLoss < 0) {
+        const recovery = Math.ceil(Math.abs(comLoss) / 2)
+        this.applyEffect({ community: recovery })
+        this.log('buff', `[Stat Bonus] High trust: community loss halved (+${recovery} recovery)`)
+      }
+    }
+
+    // Check card synergies
+    this.checkAndApplySynergy(card.id)
+
     // Track played cards
     this.state.playedCardIds.push(card.id)
+    this.state.cardsPlayedThisRound.push(card.id)
     this.cardsPlayedThisRound++
 
     this.state.hand.splice(cardIndex, 1)
@@ -390,7 +499,13 @@ export class GameEngine {
   }
 
   endTurn() {
-    this.state.phase = 'resolution'
+    const previousStats = { ...this.state.stats }
+
+    // Scale stage: automatic pressure increase
+    if (this.state.gameStage === 'scale') {
+      this.state.stats.pressure = this.clamp(this.state.stats.pressure + 1, 0, MAX_STATS.pressure)
+      this.log('system', '[Scale Stage] Investor pressure increases: pressure +1')
+    }
 
     const netIncome = this.state.stats.revenue - this.state.burnRate
     this.state.stats.cash = this.clamp(
@@ -401,18 +516,53 @@ export class GameEngine {
 
     this.log('system', `Round ${this.state.round} ended. Net income: ${netIncome > 0 ? '+' : ''}${netIncome} (burn: ${this.state.burnRate})`)
 
+    // Build stat deltas for the summary
+    const statDeltas: StatEffect = {}
+    for (const key of Object.keys(this.state.stats) as StatId[]) {
+      const delta = this.state.stats[key] - previousStats[key]
+      if (delta !== 0) statDeltas[key] = delta
+    }
+
+    // Collect expired effects for summary
+    const expiredEffects = this.state.activeEffects
+      .filter(e => e.remainingRounds === 1 && e.type !== 'burn_rate_delta')
+      .map(e => e.label)
+
+    this.state.roundSummary = {
+      round: this.state.round,
+      revenue: this.state.stats.revenue,
+      burnRate: this.state.burnRate,
+      netIncome,
+      statDeltas,
+      expiredEffects,
+      newEffects: [],
+      previousStats,
+    }
+
     // Check victory / defeat
     const verdict = this.checkVictory()
     if (verdict !== 'none') {
       this.state.victory = verdict
+      this.state.phase = 'resolution'
       this.log('victory', verdict === 'win'
-        ? `🏆 Victory! ${this.state.victoryReason}`
-        : `💀 Game over. ${this.state.victoryReason}`)
-      return  // stay in 'resolution' phase so UI can react
+        ? `Victory! ${this.state.victoryReason}`
+        : `Game over. ${this.state.victoryReason}`)
+      return
     }
 
+    this.state.phase = 'summary'
+  }
+
+  /** Called by UI after the round summary overlay is dismissed */
+  advanceFromSummary() {
     this.state.round += 1
     this.state.actionPoints = this.state.maxActionPoints
+
+    // Scale stage: extra action point
+    if (this.state.round > 12) {
+      this.state.maxActionPoints = 4
+      this.state.actionPoints = 4
+    }
 
     this.state.discardPile.push(...this.state.hand)
     this.state.hand = []
@@ -788,6 +938,12 @@ export class GameEngine {
         }
         break
     }
+
+    // Organization passive: Foundation model gives community +1 per round
+    if (this.config?.organizationId === 'foundation') {
+      this.applyEffect({ community: 1 })
+      this.log('buff', '[Org Passive] Foundation governance: community +1')
+    }
   }
 
   // ── Event drawing with deduplication and condition filtering ──────────────
@@ -830,7 +986,7 @@ export class GameEngine {
   }
 
   private evaluateTriggerCondition(condition: string): boolean {
-    // "reputation + revenue >= 20"
+    // "reputation + revenue >= 20" — with scaled probability for acquisition
     const sumMatch = condition.match(/(\w+)\s*\+\s*(\w+)\s*(>=|>|<=|<)\s*(\d+)/)
     if (sumMatch) {
       const [, s1, s2, op, valStr] = sumMatch
@@ -838,12 +994,18 @@ export class GameEngine {
         (this.state.stats[s1 as StatId] ?? 0) +
         (this.state.stats[s2 as StatId] ?? 0)
       const threshold = parseInt(valStr)
+      let passes = false
       switch (op) {
-        case '>=': return sum >= threshold
-        case '>':  return sum > threshold
-        case '<=': return sum <= threshold
-        case '<':  return sum < threshold
+        case '>=': passes = sum >= threshold; break
+        case '>':  passes = sum > threshold; break
+        case '<=': passes = sum <= threshold; break
+        case '<':  passes = sum < threshold; break
       }
+      // For acquisition mode, use scaled probability
+      if (passes && this.state.gameModeId === 'acquisition') {
+        return Math.random() < this.getAcquisitionProbability()
+      }
+      return passes
     }
 
     // Single stat condition
@@ -853,7 +1015,12 @@ export class GameEngine {
   // ── Low-level helpers ─────────────────────────────────────────────────────
 
   private drawHand() {
-    for (let i = 0; i < 3; i++) {
+    const baseCards = this.state.gameStage === 'seed' ? 4 : 3
+    const extraDraw = this.state.stats.dev_speed >= 6 ? 1 : 0
+    const org = this.config ? organizations.find(o => o.id === this.config!.organizationId) : null
+    const orgBonus = org?.handSizeBonus ?? 0
+    const total = baseCards + extraDraw + orgBonus
+    for (let i = 0; i < total; i++) {
       this.drawOneCard()
     }
   }
@@ -901,5 +1068,176 @@ export class GameEngine {
       message,
       timestamp: Date.now(),
     })
+  }
+
+  // ── Card effect preview ──────────────────────────────────────────────────
+
+  previewCardEffect(cardId: string): CardPreview | null {
+    const card = this.state.hand.find(c => c.id === cardId)
+    if (!card) return null
+
+    // Compute multiplier (same logic as playCard)
+    let extraMultiplier = 0
+    for (const effect of this.state.activeEffects) {
+      if (effect.type === 'next_card_boost' && effect.category === card.category) {
+        extraMultiplier += effect.multiplier ?? 0
+      }
+    }
+    const baseMultiplier = this.state.effectMultipliers[card.category] ?? 1
+    const isDockerGrowth = this.config?.template.id === 'docker' && card.category === 'Growth'
+    const finalMultiplier = isDockerGrowth ? 2.0 + extraMultiplier : baseMultiplier + extraMultiplier
+
+    // Base effect with multiplier
+    const baseEffect: StatEffect = {}
+    for (const [key, value] of Object.entries(card.effect)) {
+      baseEffect[key as StatId] = finalMultiplier !== 1 ? Math.round((value as number) * finalMultiplier) : (value as number)
+    }
+
+    // Immediate bonus
+    const bonusEffect: StatEffect = { ...(CARD_IMMEDIATE_BONUS[card.id] ?? {}) }
+
+    // Template passive bonus
+    const templateBonus: StatEffect = this.getTemplateBonus(card)
+
+    // Trust >= 8: recover community loss
+    if (card.category === 'Monetization' && this.state.stats.trust >= 8) {
+      const comLoss = card.effect.community ?? 0
+      if (comLoss < 0) {
+        const recovery = Math.ceil(Math.abs(comLoss) / 2)
+        templateBonus.community = (templateBonus.community ?? 0) + recovery
+      }
+    }
+
+    // Cost
+    const costEffect: StatEffect = card.cost ? { ...card.cost } : {}
+
+    // Synergy preview
+    let synergyBonus: StatEffect | null = null
+    let synergyLabel: string | null = null
+    const played = this.state.cardsPlayedThisRound
+    if (played.length > 0) {
+      const lastPlayed = played[played.length - 1]
+      const synergy = CARD_SYNERGIES.find(s => s.cardA === lastPlayed && s.cardB === card.id)
+      if (synergy) {
+        synergyBonus = synergy.bonus
+        synergyLabel = synergy.label
+      }
+    }
+
+    // Total
+    const totalEffect: StatEffect = {}
+    const allEffects = [baseEffect, bonusEffect, templateBonus, costEffect]
+    if (synergyBonus) allEffects.push(synergyBonus)
+    for (const eff of allEffects) {
+      for (const [key, value] of Object.entries(eff)) {
+        totalEffect[key as StatId] = (totalEffect[key as StatId] ?? 0) + (value as number)
+      }
+    }
+
+    return {
+      baseEffect,
+      bonusEffect,
+      templateBonus,
+      costEffect,
+      totalEffect,
+      multiplier: finalMultiplier,
+      synergyBonus,
+      synergyLabel,
+    }
+  }
+
+  private getTemplateBonus(card: Card): StatEffect {
+    const templateId = this.config?.template.id
+    if (!templateId) return {}
+    const bonus: StatEffect = {}
+
+    switch (templateId) {
+      case 'redis':
+        if (card.category === 'Open Source') bonus.trust = 1
+        break
+      case 'mongodb':
+        if (card.id === 'enterprise-edition' && (card.effect.community ?? 0) < 0) {
+          bonus.community = -(card.effect.community ?? 0)
+        }
+        break
+      case 'gitlab':
+        if (card.id === 'open-governance' || card.id === 'public-roadmap') {
+          for (const [k, v] of Object.entries(card.effect)) {
+            bonus[k as StatId] = v as number
+          }
+        }
+        break
+      case 'redhat':
+        if (card.category === 'Open Source') bonus.revenue = 1
+        break
+      case 'kubernetes':
+        if (card.id === 'open-governance') {
+          if (card.effect.community) bonus.community = card.effect.community
+          if (card.effect.trust) bonus.trust = card.effect.trust
+        }
+        break
+      case 'elastic':
+        if (this.cardsPlayedThisRound >= 1) bonus.community = 1
+        break
+    }
+    return bonus
+  }
+
+  // ── Card synergy application ─────────────────────────────────────────────
+
+  private checkAndApplySynergy(cardId: string) {
+    const played = this.state.cardsPlayedThisRound
+    if (played.length === 0) return
+
+    for (const prevId of played) {
+      const synergy = CARD_SYNERGIES.find(s => s.cardA === prevId && s.cardB === cardId)
+      if (synergy) {
+        this.applyEffect(synergy.bonus)
+        this.log('buff', `[Synergy!] ${synergy.label}`)
+        break
+      }
+    }
+  }
+
+  // ── Stat interaction helpers ──────────────────────────────────────────────
+
+  private hasNegativeEffect(effect: StatEffect): boolean {
+    return Object.values(effect).some(v => (v as number) < 0)
+  }
+
+  private reduceNegativeEffects(effect: StatEffect, reduction: number): StatEffect {
+    const result: StatEffect = {}
+    for (const [key, value] of Object.entries(effect)) {
+      const v = value as number
+      result[key as StatId] = v < 0 ? Math.round(v * (1 - reduction)) : v
+    }
+    return result
+  }
+
+  // ── Game stage mechanics ─────────────────────────────────────────────────
+
+  private applyGameStageEffects() {
+    const stage = this.state.gameStage
+    if (stage === 'seed' && this.state.round <= 2) {
+      // Grace period: halve burn for first 2 rounds
+      this.log('buff', '[Seed Stage] Grace period: reduced burn impact')
+    }
+  }
+
+  // ── Acquisition probability scaling ──────────────────────────────────────
+
+  getAcquisitionProbability(): number {
+    const { round, stats } = this.state
+    if (stats.reputation + stats.revenue < 20) return 0
+    const base = 0.2
+    const roundBonus = Math.max(0, (round - 10) * 0.04)
+    return Math.min(base + roundBonus, 0.6)
+  }
+
+  /** Runway projection: how many rounds until cash hits 0 at current burn */
+  getRunwayRounds(): number {
+    const net = this.state.stats.revenue - this.state.burnRate
+    if (net >= 0) return 999
+    return Math.max(0, Math.ceil(this.state.stats.cash / Math.abs(net)))
   }
 }

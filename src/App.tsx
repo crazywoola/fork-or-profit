@@ -4,6 +4,7 @@ import { SetupScreen } from './screens/SetupScreen'
 import { GameScreen } from './screens/GameScreen'
 import { GameOverScreen } from './screens/GameOverScreen'
 import { useGameEngine } from './hooks/useGameEngine'
+import { isMuted, setMuted } from './audio/sfx'
 import type { CompanyTemplate } from './data/company-templates'
 import type { RoleProfile } from './data/roles'
 
@@ -14,13 +15,21 @@ export type GameSetup = {
   template: CompanyTemplate
   companyName: string
   gameModeId: string
+  organizationId: string
 }
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [setup, setSetup] = useState<GameSetup | null>(null)
   const [gameResult, setGameResult] = useState<'win' | 'lose'>('lose')
-  const { gameState, canPlayCard, actions } = useGameEngine()
+  const [audioMuted, setAudioMuted] = useState(false)
+
+  const toggleAudio = useCallback(() => {
+    const next = !audioMuted
+    setAudioMuted(next)
+    setMuted(next)
+  }, [audioMuted])
+  const { gameState, canPlayCard, previewCard, getRunway, actions } = useGameEngine()
 
   const handleStartPress = useCallback(() => {
     setScreen('setup')
@@ -28,7 +37,7 @@ export default function App() {
 
   const handleSetupConfirm = useCallback((s: GameSetup) => {
     setSetup(s)
-    actions.restart({ role: s.role, template: s.template, gameModeId: s.gameModeId })
+    actions.restart({ role: s.role, template: s.template, gameModeId: s.gameModeId, organizationId: s.organizationId })
     actions.startRound()
     setScreen('game')
   }, [actions])
@@ -49,6 +58,9 @@ export default function App() {
 
   return (
     <div className="game-root">
+      <button className="audio-toggle" onClick={toggleAudio}>
+        {audioMuted ? 'SOUND OFF' : 'SOUND ON'}
+      </button>
       {screen === 'title' && (
         <TitleScreen onStart={handleStartPress} />
       )}
@@ -60,6 +72,8 @@ export default function App() {
           setup={setup}
           gameState={gameState}
           canPlayCard={canPlayCard}
+          previewCard={previewCard}
+          getRunway={getRunway}
           actions={actions}
           onGameOver={handleGameOver}
           onNewGame={handleNewGame}

@@ -9,26 +9,51 @@ import { GameLog } from '../components/GameLog'
 import { StatsPopup } from '../components/StatsPopup'
 import { PixelStatBar } from '../components/PixelStatBar'
 import { PixelIcon } from '../components/PixelIcon'
+import { sfxCardPlay, sfxEventAlert, sfxEndTurn, sfxDanger } from '../audio/sfx'
 import { PALETTE } from '../pixel/palette'
 import { OFFICE_ROOMS } from '../pixel/tiles'
 import { gameModes } from '../data/game'
 import { englishText, titleFromId } from '../utils/english'
 import type { GameSetup } from '../App'
-import type { GameState } from '../engine/types'
+import type { GameState, CardPreview, StatId } from '../engine/types'
 
 type Props = {
   setup: GameSetup
   gameState: GameState
   canPlayCard: (cardId: string) => boolean
+  previewCard: (cardId: string) => CardPreview | null
+  getRunway: () => number
   actions: {
     startRound: () => void
     resolveEvent: (optionIndex: number) => void
     playCard: (cardId: string) => void
     endTurn: () => void
+    advanceSummary: () => void
     restart: () => void
   }
   onGameOver: (result: 'win' | 'lose') => void
   onNewGame: () => void
+}
+
+const MODE_KEY_STATS: Record<string, StatId[]> = {
+  survival: ['revenue', 'growth'],
+  ipo: ['revenue', 'reputation'],
+  legend: ['growth', 'trust'],
+  acquisition: ['revenue', 'reputation'],
+  'open-core': ['revenue', 'community'],
+}
+
+const STAT_DISPLAY_NAMES: Record<string, string> = {
+  cash: 'CASH', revenue: 'REVENUE', community: 'COMMUNITY',
+  growth: 'GROWTH', reputation: 'REPUTATION', control: 'CONTROL',
+  dev_speed: 'DEV SPEED', stability: 'STABILITY',
+  pressure: 'PRESSURE', trust: 'TRUST', risk: 'RISK',
+}
+
+const STAGE_LABELS: Record<string, string> = {
+  seed: 'SEED',
+  growth: 'GROWTH',
+  scale: 'SCALE',
 }
 
 // Segmented danger stat (PRESSURE / RISK, max=10) — distinct from progress bars
@@ -60,7 +85,7 @@ function eventToRoomId(category: string): string {
   }
 }
 
-export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver, onNewGame }: Props) {
+export function GameScreen({ setup, gameState, canPlayCard, previewCard, getRunway, actions, onGameOver, onNewGame }: Props) {
   const [activeRoomId, setActiveRoomId] = useState('hq')
   const [showStats, setShowStats] = useState(false)
   const [showGuide, setShowGuide] = useState(false)
@@ -80,24 +105,46 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
     return ''
   }, [phase, activeEvent])
 
-  // Victory / defeat detection: phase stays 'resolution' when game ends
+  // Victory / defeat detection
   useEffect(() => {
-    if (phase === 'resolution' && gameState.victory !== 'none') {
+    if (gameState.victory !== 'none' && (phase === 'resolution' || phase === 'summary')) {
       onGameOver(gameState.victory)
     }
   }, [phase, gameState.victory, onGameOver])
 
+  const runway = useMemo(() => getRunway(), [getRunway, stats.cash, stats.revenue, gameState.burnRate])
+  const keyStats = MODE_KEY_STATS[setup.gameModeId] ?? ['revenue', 'growth']
+
+  const getTrend = useCallback((statId: StatId): 'up' | 'down' | 'flat' => {
+    if (!gameState.previousRoundStats) return 'flat'
+    const prev = gameState.previousRoundStats[statId]
+    const curr = stats[statId]
+    if (curr > prev) return 'up'
+    if (curr < prev) return 'down'
+    return 'flat'
+  }, [gameState.previousRoundStats, stats])
+
   const handleResolveEvent = useCallback((idx: number) => {
+    sfxEventAlert()
     actions.resolveEvent(idx)
   }, [actions])
 
   const handlePlayCard = useCallback((cardId: string) => {
+    sfxCardPlay()
     actions.playCard(cardId)
   }, [actions])
 
   const handleEndTurn = useCallback(() => {
+    sfxEndTurn()
     actions.endTurn()
   }, [actions])
+
+  // Play danger sound when critical thresholds are reached
+  useEffect(() => {
+    if (stats.cash <= 3 || stats.community <= 2 || stats.risk >= 8 || stats.pressure >= 8) {
+      sfxDanger()
+    }
+  }, [stats.cash <= 3, stats.community <= 2, stats.risk >= 8, stats.pressure >= 8])
 
   const selectedRoom = OFFICE_ROOMS.find(r => r.id === activeRoomId)
 
@@ -195,17 +242,39 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
         <div className="hud-stats-section">
           <PixelStatBar label="CASH"      value={stats.cash}      max={50} color={PALETTE.cashGold}      danger={stats.cash <= 3}     icon="cash" />
           <PixelStatBar label="COMMUNITY" value={stats.community} max={50} color={PALETTE.communityTeal} danger={stats.community <= 2} icon="community" />
+          {keyStats.map(statId => {
+            const trend = getTrend(statId)
+            const trendChar = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '—'
+            const trendColor = trend === 'up' ? PALETTE.healthGreen : trend === 'down' ? PALETTE.dangerRed : PALETTE.textDim
+            return (
+              <div key={statId} className="hud-contextual-stat">
+                <PixelStatBar
+                  label={STAT_DISPLAY_NAMES[statId] ?? statId}
+                  value={stats[statId]}
+                  max={statId === 'pressure' || statId === 'risk' ? 10 : 50}
+                  color={statId === 'revenue' ? PALETTE.orange : statId === 'reputation' ? PALETTE.accentGold : statId === 'growth' ? PALETTE.growthPink : PALETTE.communityTeal}
+                  icon={statId}
+                  compact
+                />
+                <span className="hud-trend" style={{ color: trendColor }}>{trendChar}</span>
+              </div>
+            )
+          })}
           <div className="hud-danger-stats">
             <PixelDangerStat label="PRESSURE" value={stats.pressure} max={10} danger={stats.pressure >= 7} />
             <PixelDangerStat label="RISK"     value={stats.risk}     max={10} danger={stats.risk >= 7} />
           </div>
           <button className="hud-expand-stats-btn" onClick={() => setShowStats(true)}>
             <PixelIcon name="star" size={8} color={PALETTE.textDim} />
-            GROWTH · REVENUE · REPUTATION · MORE [S]
+            ALL STATS [S]
           </button>
         </div>
         <div className="hud-meta-row">
           <span className="hud-burn-rate">BURN: {gameState.burnRate}/round</span>
+          <span className={`hud-runway ${runway <= 3 ? 'danger' : ''}`}>
+            {runway >= 999 ? 'PROFITABLE' : `RUNWAY: ${runway}r`}
+          </span>
+          <span className="hud-stage-badge">{STAGE_LABELS[gameState.gameStage]}</span>
           {activeBoneCount > 0 && (
             <span className="hud-buff-count" title={gameState.activeEffects.map(e => {
               const label = englishText(e.label, 'Effect')
@@ -263,9 +332,44 @@ export function GameScreen({ setup, gameState, canPlayCard, actions, onGameOver,
               maxActionPoints={maxActionPoints}
               effectMultipliers={gameState.effectMultipliers}
               canPlayCard={canPlayCard}
+              previewCard={previewCard}
               onPlayCard={handlePlayCard}
               onEndTurn={handleEndTurn}
             />
+          )}
+
+          {phase === 'summary' && gameState.roundSummary && (
+            <div className="round-summary-overlay">
+              <div className="round-summary-panel">
+                <h3>ROUND {gameState.roundSummary.round} COMPLETE</h3>
+                <div className="summary-income">
+                  <span className="summary-formula">
+                    Revenue ({gameState.roundSummary.revenue}) - Burn ({gameState.roundSummary.burnRate}) = <strong className={gameState.roundSummary.netIncome >= 0 ? 'positive' : 'negative'}>
+                      {gameState.roundSummary.netIncome >= 0 ? '+' : ''}{gameState.roundSummary.netIncome}
+                    </strong>
+                  </span>
+                </div>
+                <div className="summary-deltas">
+                  {Object.entries(gameState.roundSummary.statDeltas).map(([key, val]) => (
+                    <div key={key} className={`summary-delta ${(val as number) > 0 ? 'positive' : 'negative'}`}>
+                      <span className="summary-delta-name">{STAT_DISPLAY_NAMES[key] ?? key}</span>
+                      <span className="summary-delta-val">{(val as number) > 0 ? '+' : ''}{val as number}</span>
+                    </div>
+                  ))}
+                </div>
+                {gameState.roundSummary.expiredEffects.length > 0 && (
+                  <div className="summary-expired">
+                    <span className="summary-expired-label">Effects expired:</span>
+                    {gameState.roundSummary.expiredEffects.map((e, i) => (
+                      <span key={i} className="summary-expired-item">{e}</span>
+                    ))}
+                  </div>
+                )}
+                <button className="pixel-btn primary" onClick={actions.advanceSummary}>
+                  CONTINUE
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

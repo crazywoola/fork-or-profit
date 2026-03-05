@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CATEGORY_COLORS, PALETTE } from '../pixel/palette'
 import { PixelIcon, CardCategoryIcon } from './PixelIcon'
 import { englishText } from '../utils/english'
-import type { Card } from '../engine/types'
+import type { Card, CardPreview } from '../engine/types'
 
 type Props = {
   hand: Card[]
@@ -10,6 +10,7 @@ type Props = {
   maxActionPoints: number
   effectMultipliers: Record<string, number>
   canPlayCard: (cardId: string) => boolean
+  previewCard: (cardId: string) => CardPreview | null
   onPlayCard: (cardId: string) => void
   onEndTurn: () => void
 }
@@ -28,7 +29,7 @@ const STAT_LABELS: Record<string, string> = {
   risk: 'risk',
 }
 
-export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipliers, canPlayCard, onPlayCard, onEndTurn }: Props) {
+export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipliers, canPlayCard, previewCard, onPlayCard, onEndTurn }: Props) {
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [hoverIdx, setHoverIdx] = useState(-1)
 
@@ -76,8 +77,14 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipli
   const activePlayable = activeCard ? canPlayCard(activeCard.id) : false
   const activeMultiplier = activeCard ? (effectMultipliers[activeCard.category] ?? 1) : 1
 
+  const preview = useMemo<CardPreview | null>(() => {
+    if (!activeCard) return null
+    return previewCard(activeCard.id)
+  }, [activeCard, previewCard])
+
   const effectStr = (effect: Record<string, number>) => {
     return Object.entries(effect)
+      .filter(([, v]) => v !== 0)
       .map(([k, v]) => `${STAT_LABELS[k] ?? k}: ${v > 0 ? '+' : ''}${v}`)
       .join(', ')
   }
@@ -123,12 +130,38 @@ export function BattleMenu({ hand, actionPoints, maxActionPoints, effectMultipli
                 Requires: {englishText(activeCard.condition, 'Requirements not met')}
               </span>
             )}
-            {activeMultiplier !== 1 && (
-              <span className={`battle-card-detail-mult ${activeMultiplier > 1 ? 'boost' : 'penalty'}`}>
-                {activeMultiplier > 1 ? '▲' : '▼'} x{activeMultiplier} {activeCard.category} bonus active
+            {preview && preview.multiplier !== 1 && (
+              <span className={`battle-card-detail-mult ${preview.multiplier > 1 ? 'boost' : 'penalty'}`}>
+                {preview.multiplier > 1 ? '▲' : '▼'} x{preview.multiplier} {activeCard.category}
               </span>
             )}
           </div>
+          {preview && (
+            <div className="battle-card-preview">
+              <div className="preview-section">
+                <span className="preview-label">TOTAL IMPACT</span>
+                <span className="preview-effects">{effectStr(preview.totalEffect)}</span>
+              </div>
+              {Object.keys(preview.bonusEffect).length > 0 && (
+                <div className="preview-section bonus">
+                  <span className="preview-label">BONUS</span>
+                  <span className="preview-effects">{effectStr(preview.bonusEffect)}</span>
+                </div>
+              )}
+              {Object.keys(preview.templateBonus).length > 0 && (
+                <div className="preview-section template">
+                  <span className="preview-label">PASSIVE</span>
+                  <span className="preview-effects">{effectStr(preview.templateBonus)}</span>
+                </div>
+              )}
+              {preview.synergyLabel && (
+                <div className="preview-section synergy">
+                  <span className="preview-label">SYNERGY</span>
+                  <span className="preview-effects">{preview.synergyLabel}</span>
+                </div>
+              )}
+            </div>
+          )}
           <p className="battle-card-detail-tip">[Enter] Play · [←→] Switch · [1-9] Quick Play · [E] End Turn</p>
         </div>
       )}

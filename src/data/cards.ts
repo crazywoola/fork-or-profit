@@ -371,6 +371,24 @@ export const STRATEGY_CARDS: Card[] = [
     notes: 'community +1（若被收购方是开源项目），pressure +1',
     archetypes: ['executive', 'finance', 'product'],
   },
+  {
+    id: 'automate-operations',
+    title: 'Automate Operations',
+    category: 'Operations',
+    description: 'Invest in automation to reduce recurring operational costs.',
+    effect: { dev_speed: 1, stability: 1 },
+    notes: 'burn rate -1 (operational automation savings)',
+    core: true,
+  },
+  {
+    id: 'cloud-cost-optimization',
+    title: 'Cloud Cost Optimization',
+    category: 'Operations',
+    description: 'Right-size cloud infrastructure and negotiate reserved capacity.',
+    effect: { cash: 2, stability: 1 },
+    notes: 'burn rate -1 (infra cost reduction)',
+    archetypes: ['engineering', 'operations', 'finance'],
+  },
 
   // ═══ Finance (10) ═══
   {

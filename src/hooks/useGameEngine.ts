@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { GameEngine, type GameConfig } from '../engine/game'
-import type { GameState } from '../engine/types'
+import type { GameState, CardPreview } from '../engine/types'
 
 export function useGameEngine() {
   const engineRef = useRef(new GameEngine())
@@ -17,12 +17,22 @@ export function useGameEngine() {
       activeEffects: [...s.activeEffects],
       playedCardIds: [...s.playedCardIds],
       usedEventIds: [...s.usedEventIds],
+      cardsPlayedThisRound: [...s.cardsPlayedThisRound],
+      previousRoundStats: s.previousRoundStats ? { ...s.previousRoundStats } : null,
+      roundSummary: s.roundSummary ? { ...s.roundSummary } : null,
     })
   }, [])
 
-  /** Check if the card in the current hand is playable. Reads live engine state. */
   const canPlayCard = useCallback((cardId: string): boolean => {
     return engineRef.current.canPlayCard(cardId)
+  }, [])
+
+  const previewCard = useCallback((cardId: string): CardPreview | null => {
+    return engineRef.current.previewCardEffect(cardId)
+  }, [])
+
+  const getRunway = useCallback((): number => {
+    return engineRef.current.getRunwayRounds()
   }, [])
 
   const actions = {
@@ -42,11 +52,15 @@ export function useGameEngine() {
       engineRef.current.endTurn()
       syncState()
     },
+    advanceSummary: () => {
+      engineRef.current.advanceFromSummary()
+      syncState()
+    },
     restart: (config?: GameConfig) => {
       engineRef.current = new GameEngine(config)
       syncState()
     },
   }
 
-  return { gameState, canPlayCard, actions }
+  return { gameState, canPlayCard, previewCard, getRunway, actions }
 }
