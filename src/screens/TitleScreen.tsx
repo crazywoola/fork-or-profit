@@ -125,6 +125,15 @@ export function TitleScreen({ onStart }: Props) {
           ▶ PRESS START
         </p>
         <p className="title-version">v0.1.0 · PIXEL EDITION</p>
+        <a
+          className="title-github-link"
+          href="https://github.com/crazywoola/fork-or-profit"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
+        >
+          GitHub
+        </a>
       </div>
     </div>
   )

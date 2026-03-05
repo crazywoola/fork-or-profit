@@ -161,6 +161,24 @@ body {
   margin: 0;
 }
 
+.title-github-link {
+  font-family: var(--font-title);
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  border: 1px solid var(--text-muted);
+  padding: 6px 14px;
+  transition: color 0.15s, border-color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.title-github-link:hover {
+  color: var(--highlight);
+  border-color: var(--highlight);
+}
+
 /* ═══════════════════════════════════════════
    SETUP SCREEN
    ═══════════════════════════════════════════ */
