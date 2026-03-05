@@ -13,13 +13,14 @@ export type GameSetup = {
   role: RoleProfile
   template: CompanyTemplate
   companyName: string
+  gameModeId: string
 }
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('title')
   const [setup, setSetup] = useState<GameSetup | null>(null)
   const [gameResult, setGameResult] = useState<'win' | 'lose'>('lose')
-  const { gameState, actions } = useGameEngine()
+  const { gameState, canPlayCard, actions } = useGameEngine()
 
   const handleStartPress = useCallback(() => {
     setScreen('setup')
@@ -27,7 +28,7 @@ export default function App() {
 
   const handleSetupConfirm = useCallback((s: GameSetup) => {
     setSetup(s)
-    actions.restart({ role: s.role, template: s.template })
+    actions.restart({ role: s.role, template: s.template, gameModeId: s.gameModeId })
     actions.startRound()
     setScreen('game')
   }, [actions])
@@ -58,6 +59,7 @@ export default function App() {
         <GameScreen
           setup={setup}
           gameState={gameState}
+          canPlayCard={canPlayCard}
           actions={actions}
           onGameOver={handleGameOver}
           onNewGame={handleNewGame}

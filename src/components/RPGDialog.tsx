@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { TypeWriter } from './TypeWriter'
 import { EventCategoryIcon, PixelIcon } from './PixelIcon'
 import { CATEGORY_COLORS, PALETTE } from '../pixel/palette'
+import { englishText } from '../utils/english'
 import type { GameEvent } from '../engine/types'
 
 type Props = {
@@ -62,11 +63,11 @@ export function RPGDialog({ event, onResolve }: Props) {
               <EventCategoryIcon category={event.category} size={10} />
               {event.category}
             </span>
-            <h3>{event.title}</h3>
+            <h3>{englishText(event.title, 'Critical Event')}</h3>
           </div>
 
           <div className="rpg-dialog-text">
-            <TypeWriter text={event.description} speed={25} onComplete={() => setTextDone(true)} />
+            <TypeWriter text={englishText(event.description, 'A major change is affecting your company. Choose your response.')} speed={25} onComplete={() => setTextDone(true)} />
           </div>
 
           {textDone && (
@@ -84,7 +85,7 @@ export function RPGDialog({ event, onResolve }: Props) {
                       : <span style={{ width: 12, display: 'inline-block' }} />
                     }
                   </span>
-                  <span className="option-label">{opt.label}</span>
+                  <span className="option-label">{englishText(opt.label, `Option ${idx + 1}`)}</span>
                   <span className="option-effect">{effectStr(opt.effect)}</span>
                 </button>
               ))}

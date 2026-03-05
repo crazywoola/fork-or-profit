@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { PixelIcon } from './PixelIcon'
 import { PALETTE } from '../pixel/palette'
+import { englishText } from '../utils/english'
 import type { LogEntry, LogType } from '../engine/types'
 
 type Props = {
@@ -74,7 +75,7 @@ export function GameLog({ history }: Props) {
               {LOG_TAG_LABELS[entry.type]}
             </span>
             <span className="log-round">R{entry.round}</span>
-            <span className="log-msg">{entry.message}</span>
+            <span className="log-msg">{englishText(entry.message, 'System update.')}</span>
           </div>
         ))}
       </div>

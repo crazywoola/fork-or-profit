@@ -113,10 +113,17 @@ export function GameOverScreen({ result, gameState, onRestart, onNewGame }: Prop
 
         {!isWin && (
           <p className="gameover-reason">
-            {stats && stats.cash <= 0 ? 'Your company ran out of cash.' :
-             stats && stats.community <= 0 ? 'Your open source community collapsed.' :
-             'The company could not survive.'}
+            {gameState?.victoryReason ||
+             (stats && stats.cash <= 0 ? 'Cash is depleted and the company is bankrupt.' :
+              stats && stats.community <= 0 ? 'Your open-source community collapsed.' :
+              stats && stats.risk >= 10 ? 'Risk exposure reached a critical limit.' :
+              stats && stats.pressure >= 10 ? 'External pressure broke team morale.' :
+              'You failed to reach the objective before the deadline.')}
           </p>
+        )}
+
+        {isWin && gameState?.victoryReason && (
+          <p className="gameover-reason win-reason">{gameState.victoryReason}</p>
         )}
 
         {stats && (

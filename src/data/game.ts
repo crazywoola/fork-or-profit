@@ -21,74 +21,74 @@ export type CompanyStat = {
 export const gameModes: GameMode[] = [
   {
     id: 'survival',
-    name: '生存模式',
-    goal: '12 回合内保持 cash 与 community 为正'
+    name: 'Survival',
+    goal: 'Keep cash and community above 0 through Round 12.'
   },
   {
     id: 'ipo',
-    name: 'IPO 模式',
-    goal: '20 回合达成 revenue ≥ 30、reputation ≥ 15'
+    name: 'IPO',
+    goal: 'Reach revenue >= 30 and reputation >= 15 by Round 20.'
   },
   {
     id: 'legend',
-    name: '传奇开源',
-    goal: '20 回合内 community ≥ 30 且 growth ≥ 20'
+    name: 'OSS Legend',
+    goal: 'Reach community >= 30 and growth >= 20 by Round 20.'
   },
   {
     id: 'acquisition',
-    name: '并购退出',
-    goal: '触发收购事件并满足 reputation + revenue ≥ 25'
+    name: 'Acquisition Exit',
+    goal: 'Trigger an acquisition event and satisfy reputation + revenue >= 25.'
   },
   {
     id: 'open-core',
     name: 'Open-Core',
-    goal: '20 回合内 community 与 revenue 同时 ≥ 15'
+    goal: 'Reach both community >= 15 and revenue >= 15 by Round 20.'
   }
 ]
 
 export const organizations: Organization[] = [
   {
     id: 'flat',
-    name: '扁平化创业团队',
-    style: '共享行动池，节奏极快，适合开源路线'
+    name: 'Flat Startup Team',
+    style: 'Shared action pool and very fast pace. Best for OSS-first routes.'
   },
   {
     id: 'functional',
-    name: '功能型组织',
-    style: '部门分工明确，商业化卡牌加成'
+    name: 'Functional Organization',
+    style: 'Clear department boundaries with stronger monetization execution.'
   },
   {
     id: 'matrix',
-    name: '矩阵式组织',
-    style: '双维度协同，资源争夺更明显'
+    name: 'Matrix Organization',
+    style: 'Cross-functional coordination with higher resource contention.'
   },
   {
     id: 'squad',
-    name: '公会制 / 小队制',
-    style: '双队并行，小队竞争与协作'
+    name: 'Squad / Guild Model',
+    style: 'Parallel squads with both collaboration and internal competition.'
   },
   {
     id: 'foundation',
-    name: '开源基金会模型',
-    style: 'TSC 投票机制，开源社区驱动'
+    name: 'Open Foundation Model',
+    style: 'TSC voting governance driven by community contributors.'
   },
   {
     id: 'dual-track',
-    name: '双轨集团',
-    style: '社区与企业牌堆并行，强调平衡'
+    name: 'Dual-Track Group',
+    style: 'Community and enterprise tracks run in parallel, emphasizing balance.'
   }
 ]
 
 export const companyStats: CompanyStat[] = [
-  { id: 'cash', label: '现金储备', value: 10, max: 30, tone: 'warm' },
-  { id: 'revenue', label: '月度营收', value: 0, max: 30, tone: 'warm' },
-  { id: 'community', label: '社区影响力', value: 5, max: 30, tone: 'cool' },
-  { id: 'growth', label: '增长势头', value: 3, max: 30, tone: 'cool' },
-  { id: 'reputation', label: '品牌声誉', value: 5, max: 30, tone: 'cool' },
-  { id: 'control', label: '控制力', value: 8, max: 30, tone: 'neutral' },
-  { id: 'dev_speed', label: '开发速度', value: 3, max: 30, tone: 'cool' },
-  { id: 'stability', label: '产品稳定性', value: 5, max: 30, tone: 'cool' },
-  { id: 'pressure', label: '外部压力', value: 0, max: 10, tone: 'danger' },
-  { id: 'trust', label: '信任度', value: 5, max: 30, tone: 'cool' },
-  { id: 'risk', label: '风险暴露', value: 2, max: 10, tone: 'danger' }
+  { id: 'cash', label: 'Cash Reserve', value: 10, max: 50, tone: 'warm' },
+  { id: 'revenue', label: 'Monthly Revenue', value: 0, max: 50, tone: 'warm' },
+  { id: 'community', label: 'Community Influence', value: 5, max: 50, tone: 'cool' },
+  { id: 'growth', label: 'Growth Momentum', value: 3, max: 50, tone: 'cool' },
+  { id: 'reputation', label: 'Brand Reputation', value: 5, max: 50, tone: 'cool' },
+  { id: 'control', label: 'Control', value: 8, max: 50, tone: 'neutral' },
+  { id: 'dev_speed', label: 'Development Speed', value: 3, max: 50, tone: 'cool' },
+  { id: 'stability', label: 'Product Stability', value: 5, max: 50, tone: 'cool' },
+  { id: 'pressure', label: 'External Pressure', value: 0, max: 10, tone: 'danger' },
+  { id: 'trust', label: 'Trust', value: 5, max: 50, tone: 'cool' },
+  { id: 'risk', label: 'Risk Exposure', value: 2, max: 10, tone: 'danger' }
 ]

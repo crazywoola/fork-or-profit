@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { roles } from '../data/roles'
 import { companyTemplates } from '../data/company-templates'
+import { gameModes } from '../data/game'
 import { STRATEGY_CARDS } from '../data/cards'
 import { PALETTE } from '../pixel/palette'
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from '../components/PixelIcon'
+import { englishText, titleFromId } from '../utils/english'
 import type { GameSetup } from '../App'
 
 type Props = { onConfirm: (setup: GameSetup) => void }
@@ -30,14 +32,40 @@ function StatPreview({ label, value, max, color }: { label: string; value: numbe
   )
 }
 
+const MODE_ICONS: Record<string, string> = {
+  survival:    '🛡',
+  ipo:         '📈',
+  legend:      '⭐',
+  acquisition: '🤝',
+  'open-core': '⚖',
+}
+
+const MODE_FALLBACK_NAMES: Record<string, string> = {
+  survival: 'Survival',
+  ipo: 'IPO',
+  legend: 'OSS Legend',
+  acquisition: 'Acquisition Exit',
+  'open-core': 'Open Core',
+}
+
+const MODE_FALLBACK_GOALS: Record<string, string> = {
+  survival: 'Keep both cash and community above 0 through Round 12.',
+  ipo: 'Reach revenue >= 30 and reputation >= 15 by Round 20.',
+  legend: 'Reach community >= 30 and growth >= 20 by Round 20.',
+  acquisition: 'Trigger an acquisition and satisfy exit conditions.',
+  'open-core': 'Reach community >= 15 and revenue >= 15 by Round 20.',
+}
+
 export function SetupScreen({ onConfirm }: Props) {
   const [roleIdx, setRoleIdx] = useState(0)
   const [templateIdx, setTemplateIdx] = useState(0)
+  const [modeIdx, setModeIdx] = useState(0)
   const [companyName, setCompanyName] = useState(companyTemplates[0].name)
-  const [activePanel, setActivePanel] = useState<'role' | 'company'>('role')
+  const [activePanel, setActivePanel] = useState<'role' | 'company' | 'mode'>('role')
 
   const role = roles[roleIdx]
   const template = companyTemplates[templateIdx]
+  const mode = gameModes[modeIdx]
 
   const handleRandomRole = useCallback(() => {
     setRoleIdx(Math.floor(Math.random() * roles.length))
@@ -52,6 +80,7 @@ export function SetupScreen({ onConfirm }: Props) {
   const handleRandomAll = useCallback(() => {
     handleRandomRole()
     handleRandomCompany()
+    setModeIdx(Math.floor(Math.random() * gameModes.length))
   }, [handleRandomRole, handleRandomCompany])
 
   const handleConfirm = useCallback(() => {
@@ -59,49 +88,57 @@ export function SetupScreen({ onConfirm }: Props) {
       role,
       template,
       companyName: companyName.trim() || template.name,
+      gameModeId: mode.id,
     })
-  }, [role, template, companyName, onConfirm])
+  }, [role, template, companyName, mode, onConfirm])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
+        e.preventDefault()
         if (activePanel === 'role') {
           setRoleIdx(i => (i - 1 + roles.length) % roles.length)
-        } else {
+        } else if (activePanel === 'company') {
           setTemplateIdx(i => (i - 1 + companyTemplates.length) % companyTemplates.length)
+        } else {
+          setModeIdx(i => (i - 1 + gameModes.length) % gameModes.length)
         }
       } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
         if (activePanel === 'role') {
           setRoleIdx(i => (i + 1) % roles.length)
+        } else if (activePanel === 'company') {
+          setTemplateIdx(i => (i + 1) % companyTemplates.length)
         } else {
-          const idx = (templateIdx + 1) % companyTemplates.length
-          setTemplateIdx(idx)
+          setModeIdx(i => (i + 1) % gameModes.length)
         }
       } else if (e.key === 'Tab') {
         e.preventDefault()
-        setActivePanel(p => p === 'role' ? 'company' : 'role')
+        setActivePanel(p => p === 'role' ? 'company' : p === 'company' ? 'mode' : 'role')
       } else if (e.key === 'Enter') {
         handleConfirm()
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [activePanel, templateIdx, handleConfirm])
+  }, [activePanel, handleConfirm])
 
   const mods = template.modifiers
   const rb = role.statBonuses
   const baseStats = [
-    { label: 'CASH', value: 10 + (mods.cash ?? 0) + (rb.cash ?? 0), max: 50, color: PALETTE.cashGold },
-    { label: 'COMMUNITY', value: 5 + (mods.community ?? 0) + (rb.community ?? 0), max: 50, color: PALETTE.communityTeal },
-    { label: 'GROWTH', value: 3 + (mods.growth ?? 0) + (rb.growth ?? 0), max: 50, color: PALETTE.growthPink },
-    { label: 'REPUTATION', value: 5 + (mods.reputation ?? 0) + (rb.reputation ?? 0), max: 50, color: PALETTE.accentGold },
-    { label: 'REVENUE', value: 0 + (mods.revenue ?? 0) + (rb.revenue ?? 0), max: 50, color: PALETTE.orange },
+    { label: 'CASH',       value: 10 + (mods.cash ?? 0)       + (rb.cash ?? 0),       max: 50, color: PALETTE.cashGold },
+    { label: 'COMMUNITY',  value: 5  + (mods.community ?? 0)  + (rb.community ?? 0),  max: 50, color: PALETTE.communityTeal },
+    { label: 'GROWTH',     value: 3  + (mods.growth ?? 0)     + (rb.growth ?? 0),     max: 50, color: PALETTE.growthPink },
+    { label: 'REPUTATION', value: 5  + (mods.reputation ?? 0) + (rb.reputation ?? 0), max: 50, color: PALETTE.accentGold },
+    { label: 'REVENUE',    value: 0  + (mods.revenue ?? 0)    + (rb.revenue ?? 0),    max: 50, color: PALETTE.orange },
   ]
 
   const deckSize = useMemo(() => {
     const archetype = role.archetype
     const roleCardTitles = new Set(role.cards)
-    return STRATEGY_CARDS.filter(c => c.core || c.archetypes?.includes(archetype) || roleCardTitles.has(c.title)).length
+    return STRATEGY_CARDS.filter(
+      c => c.core || c.archetypes?.includes(archetype) || roleCardTitles.has(c.title)
+    ).length
   }, [role])
 
   const combinedMultipliers = useMemo(() => {
@@ -118,10 +155,11 @@ export function SetupScreen({ onConfirm }: Props) {
     <div className="screen setup-screen">
       <div className="setup-header">
         <h1>CHARACTER SELECT</h1>
-        <p className="setup-hint">Choose your role and company archetype</p>
+        <p className="setup-hint">[Tab] Switch Panel · [←→] Change Option · [Enter] Start</p>
       </div>
 
       <div className="setup-panels">
+        {/* ── Role ── */}
         <div className={`setup-panel ${activePanel === 'role' ? 'active' : ''}`} onClick={() => setActivePanel('role')}>
           <h2>ROLE</h2>
           <div className="setup-selector">
@@ -130,18 +168,18 @@ export function SetupScreen({ onConfirm }: Props) {
             </button>
             <div className="setup-entity">
               <PixelPortrait archetype={role.archetype} size={80} />
-              <h3>{role.name}</h3>
-              <p className="role-title">{role.title}</p>
+              <h3>{englishText(role.name, titleFromId(role.id))}</h3>
+              <p className="role-title">{englishText(role.title, 'Role Leader')}</p>
             </div>
             <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setRoleIdx(i => (i + 1) % roles.length) }}>
               <PixelIcon name="arrow-right" size={14} />
             </button>
           </div>
-          <p className="role-focus">{role.focus}</p>
+          <p className="role-focus">{englishText(role.focus, 'Lead your team through strategic trade-offs.')}</p>
           <div className="role-perks">
             {role.perks.slice(0, 3).map((p, i) => (
               <span key={i} className="perk-chip">
-                <PixelIcon name="star" size={8} color={PALETTE.accentGold} /> {p}
+                <PixelIcon name="star" size={8} color={PALETTE.accentGold} /> {englishText(p, `Perk ${i + 1}`)}
               </span>
             ))}
           </div>
@@ -150,10 +188,9 @@ export function SetupScreen({ onConfirm }: Props) {
           </button>
         </div>
 
-        <div className="setup-divider">
-          <span>VS</span>
-        </div>
+        <div className="setup-divider"><span>×</span></div>
 
+        {/* ── Company ── */}
         <div className={`setup-panel ${activePanel === 'company' ? 'active' : ''}`} onClick={() => setActivePanel('company')}>
           <h2>COMPANY</h2>
           <div className="setup-selector">
@@ -167,8 +204,8 @@ export function SetupScreen({ onConfirm }: Props) {
               <div className="company-icon-wrap">
                 <CompanyPixelIcon templateId={template.id} size={48} />
               </div>
-              <h3>{template.name}</h3>
-              <p className="role-title">{template.phase}</p>
+              <h3>{englishText(template.name, titleFromId(template.id))}</h3>
+              <p className="role-title">{englishText(template.phase, 'Growth Stage')}</p>
             </div>
             <button className="arrow-btn" onClick={(e) => {
               e.stopPropagation()
@@ -177,11 +214,9 @@ export function SetupScreen({ onConfirm }: Props) {
               <PixelIcon name="arrow-right" size={14} />
             </button>
           </div>
-          <p className="role-focus">{template.summary}</p>
+          <p className="role-focus">{englishText(template.summary, 'A distinct company archetype with different trade-offs.')}</p>
           <div className="setup-stats-preview">
-            {baseStats.map(s => (
-              <StatPreview key={s.label} {...s} />
-            ))}
+            {baseStats.map(s => <StatPreview key={s.label} {...s} />)}
           </div>
           <div className="setup-deck-info">
             <span className="deck-count">{deckSize} cards in deck</span>
@@ -208,6 +243,52 @@ export function SetupScreen({ onConfirm }: Props) {
           <button className="pixel-btn" onClick={handleRandomCompany}>
             <PixelIcon name="dice" size={10} /> RANDOM
           </button>
+        </div>
+
+        <div className="setup-divider"><span>×</span></div>
+
+        {/* ── Game Mode ── */}
+        <div
+          className={`setup-panel mode-panel ${activePanel === 'mode' ? 'active' : ''}`}
+          onClick={() => setActivePanel('mode')}
+        >
+          <h2>GAME MODE</h2>
+          <div className="setup-selector">
+            <button className="arrow-btn" onClick={(e) => {
+              e.stopPropagation()
+              setModeIdx(i => (i - 1 + gameModes.length) % gameModes.length)
+            }}>
+              <PixelIcon name="arrow-left" size={14} />
+            </button>
+            <div className="setup-entity">
+              <div className="mode-icon-large">{MODE_ICONS[mode.id] ?? '?'}</div>
+              <h3>{englishText(mode.name, MODE_FALLBACK_NAMES[mode.id] ?? titleFromId(mode.id))}</h3>
+            </div>
+            <button className="arrow-btn" onClick={(e) => {
+              e.stopPropagation()
+              setModeIdx(i => (i + 1) % gameModes.length)
+            }}>
+              <PixelIcon name="arrow-right" size={14} />
+            </button>
+          </div>
+
+          <div className="mode-goal-box">
+            <span className="mode-goal-label">Victory Goal</span>
+            <p className="mode-goal-text">{englishText(mode.goal, MODE_FALLBACK_GOALS[mode.id] ?? 'Complete your strategic objective before time runs out.')}</p>
+          </div>
+
+          <div className="mode-all-list">
+            {gameModes.map((m, i) => (
+              <div
+                key={m.id}
+                className={`mode-item ${i === modeIdx ? 'selected' : ''}`}
+                onClick={(e) => { e.stopPropagation(); setModeIdx(i) }}
+              >
+                <span className="mode-item-icon">{MODE_ICONS[m.id] ?? '?'}</span>
+                <span className="mode-item-name">{englishText(m.name, MODE_FALLBACK_NAMES[m.id] ?? titleFromId(m.id))}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

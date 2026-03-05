@@ -7,14 +7,22 @@ export function useGameEngine() {
   const [gameState, setGameState] = useState<GameState | null>(null)
 
   const syncState = useCallback(() => {
-    const engine = engineRef.current
+    const s = engineRef.current.state
     setGameState({
-      ...engine.state,
-      stats: { ...engine.state.stats },
-      hand: [...engine.state.hand],
-      history: [...engine.state.history],
-      effectMultipliers: { ...engine.state.effectMultipliers },
+      ...s,
+      stats: { ...s.stats },
+      hand: [...s.hand],
+      history: [...s.history],
+      effectMultipliers: { ...s.effectMultipliers },
+      activeEffects: [...s.activeEffects],
+      playedCardIds: [...s.playedCardIds],
+      usedEventIds: [...s.usedEventIds],
     })
+  }, [])
+
+  /** Check if the card in the current hand is playable. Reads live engine state. */
+  const canPlayCard = useCallback((cardId: string): boolean => {
+    return engineRef.current.canPlayCard(cardId)
   }, [])
 
   const actions = {
@@ -40,5 +48,5 @@ export function useGameEngine() {
     },
   }
 
-  return { gameState, actions }
+  return { gameState, canPlayCard, actions }
 }
