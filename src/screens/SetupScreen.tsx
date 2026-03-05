@@ -5,7 +5,7 @@ import { gameModes } from '../data/game'
 import { STRATEGY_CARDS } from '../data/cards'
 import { PALETTE } from '../pixel/palette'
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from '../components/PixelIcon'
-import { englishText, titleFromId } from '../utils/english'
+import { englishText, roleNameFromId, roleTitleFromId, titleFromId } from '../utils/english'
 import type { GameSetup } from '../App'
 
 type Props = { onConfirm: (setup: GameSetup) => void }
@@ -168,8 +168,8 @@ export function SetupScreen({ onConfirm }: Props) {
             </button>
             <div className="setup-entity">
               <PixelPortrait archetype={role.archetype} size={80} />
-              <h3>{englishText(role.name, titleFromId(role.id))}</h3>
-              <p className="role-title">{englishText(role.title, 'Role Leader')}</p>
+              <h3>{englishText(role.name, roleNameFromId(role.id))}</h3>
+              <p className="role-title">{englishText(role.title, roleTitleFromId(role.id))}</p>
             </div>
             <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setRoleIdx(i => (i + 1) % roles.length) }}>
               <PixelIcon name="arrow-right" size={14} />

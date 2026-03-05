@@ -1,6 +1,6 @@
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from './PixelIcon'
 import { ARCHETYPE_COLORS, PALETTE } from '../pixel/palette'
-import { englishText, titleFromId } from '../utils/english'
+import { englishText, roleNameFromId, roleTitleFromId } from '../utils/english'
 import type { RoleProfile } from '../data/roles'
 import type { CompanyTemplate } from '../data/company-templates'
 
@@ -18,8 +18,8 @@ export function PlayerPanel({ role, template, companyName }: Props) {
       <div className="player-role">
         <PixelPortrait archetype={role.archetype} size={40} />
         <div className="player-role-info">
-          <span className="player-role-name">{englishText(role.name, titleFromId(role.id))}</span>
-          <span className="player-role-title">{englishText(role.title, 'Leadership Role')}</span>
+          <span className="player-role-name">{englishText(role.name, roleNameFromId(role.id))}</span>
+          <span className="player-role-title">{englishText(role.title, roleTitleFromId(role.id))}</span>
           <span className="player-archetype-badge" style={{ borderColor: archColor, color: archColor }}>
             {role.archetype}
           </span>

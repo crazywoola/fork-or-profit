@@ -1,13 +1,29 @@
 import { useState, useEffect } from 'react'
 import { TypeWriter } from './TypeWriter'
 import { EventCategoryIcon, PixelIcon } from './PixelIcon'
+import { EVENT_DESCRIPTION_TRANSLATIONS } from '../data/event-translations'
 import { CATEGORY_COLORS, PALETTE } from '../pixel/palette'
+import { EVENT_OPTION_TRANSLATIONS } from '../data/event-option-translations'
 import { englishText } from '../utils/english'
 import type { GameEvent } from '../engine/types'
 
 type Props = {
   event: GameEvent
   onResolve: (optionIndex: number) => void
+}
+
+const STAT_LABELS: Record<string, string> = {
+  cash: 'cash',
+  revenue: 'revenue',
+  community: 'community',
+  growth: 'growth',
+  reputation: 'reputation',
+  control: 'control',
+  dev_speed: 'dev speed',
+  stability: 'stability',
+  pressure: 'pressure',
+  trust: 'trust',
+  risk: 'risk',
 }
 
 export function RPGDialog({ event, onResolve }: Props) {
@@ -38,11 +54,30 @@ export function RPGDialog({ event, onResolve }: Props) {
   }, [textDone, selectedIdx, event.options.length, onResolve])
 
   const catColor = CATEGORY_COLORS[event.category] ?? PALETTE.textDim
+  const eventDescription =
+    EVENT_DESCRIPTION_TRANSLATIONS[event.id] ??
+    englishText(event.description, 'A major change is affecting your company. Choose your response.')
 
   const effectStr = (effect: Record<string, number>) => {
     return Object.entries(effect)
-      .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`)
+      .map(([k, v]) => `${STAT_LABELS[k] ?? k}: ${v > 0 ? '+' : ''}${v}`)
       .join(', ')
+  }
+
+  const optionLabel = (label: string, effect: Record<string, number>, idx: number) => {
+    const translated = EVENT_OPTION_TRANSLATIONS[event.id]?.[idx]?.label
+    if (translated) return translated
+
+    const cleaned = englishText(label, '')
+    if (cleaned) return cleaned
+    const summary = effectStr(effect)
+    return summary ? `Option ${idx + 1}: ${summary}` : `Option ${idx + 1}`
+  }
+
+  const optionDescription = (description: string | undefined, effect: Record<string, number>, idx: number) => {
+    const translated = EVENT_OPTION_TRANSLATIONS[event.id]?.[idx]?.description
+    if (translated) return translated
+    return englishText(description, effectStr(effect))
   }
 
   return (
@@ -67,7 +102,7 @@ export function RPGDialog({ event, onResolve }: Props) {
           </div>
 
           <div className="rpg-dialog-text">
-            <TypeWriter text={englishText(event.description, 'A major change is affecting your company. Choose your response.')} speed={25} onComplete={() => setTextDone(true)} />
+            <TypeWriter text={eventDescription} speed={25} onComplete={() => setTextDone(true)} />
           </div>
 
           {textDone && (
@@ -85,8 +120,8 @@ export function RPGDialog({ event, onResolve }: Props) {
                       : <span style={{ width: 12, display: 'inline-block' }} />
                     }
                   </span>
-                  <span className="option-label">{englishText(opt.label, `Option ${idx + 1}`)}</span>
-                  <span className="option-effect">{effectStr(opt.effect)}</span>
+                  <span className="option-label">{optionLabel(opt.label, opt.effect, idx)}</span>
+                  <span className="option-effect">{optionDescription(opt.description, opt.effect, idx)}</span>
                 </button>
               ))}
             </div>

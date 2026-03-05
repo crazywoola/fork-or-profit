@@ -87,12 +87,16 @@ body {
 }
 
 .title-content {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 24px;
+  gap: 14px;
   text-align: center;
 }
 
@@ -130,14 +134,14 @@ body {
   font-family: var(--font-body);
   font-size: 1.4rem;
   color: var(--text-dim);
-  margin-top: 8px;
+  margin: 0;
 }
 
 .title-press-start {
   font-family: var(--font-title);
   font-size: 0.9rem;
   color: var(--highlight);
-  margin-top: 32px;
+  margin: 0;
   text-shadow: 2px 2px 0 var(--black);
   transition: opacity 0.1s;
 }
@@ -148,8 +152,8 @@ body {
   font-family: var(--font-title);
   font-size: 0.6rem;
   color: var(--text-muted);
-  position: absolute;
-  bottom: -80px;
+  position: static;
+  margin: 0;
 }
 
 /* ═══════════════════════════════════════════
@@ -1485,15 +1489,19 @@ body {
 }
 
 .gameover-content {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  max-width: 500px;
-  width: 90%;
+  gap: 18px;
+  max-width: 560px;
+  width: min(92%, 560px);
+  margin: 0 auto;
+  padding: 20px 0;
+  text-align: center;
 }
 
 .gameover-title {
@@ -1520,7 +1528,9 @@ body {
   background: var(--dialog);
   border: 3px solid var(--text-muted);
   padding: 16px;
-  width: 100%;
+  width: min(100%, 460px);
+  margin: 0 auto;
+  text-align: center;
 }
 
 .gameover-stats h3 {
@@ -1540,13 +1550,18 @@ body {
   font-family: var(--font-title);
   font-size: 0.6rem;
   color: var(--text-dim);
-  margin-top: 10px;
+  margin: 8px 0 0;
   text-align: center;
 }
 
 .gameover-actions {
   display: flex;
   gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: auto;
+  margin: 0 auto;
+  flex-wrap: wrap;
 }
 
 /* ═══════════════════════════════════════════
