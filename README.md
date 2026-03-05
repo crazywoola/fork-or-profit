@@ -2,31 +2,99 @@
 
 <a href="https://www.buymeacoffee.com/pinkbanana" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-Open-source or profit? **Fork or Profit** is a strategy card game about steering a tech company through competing incentives, external shocks, and internal roles.
+Open-source or profit? **Fork or Profit** is a pixel-style strategy RPG/card game about running a tech company under constant trade-offs.
 
 - English
 - [中文](./README.zh-CN.md)
 
-## Overview
+## Play Online
 
-Fork or Profit is a role-driven strategy card game where each turn you respond to events, play strategy cards, and manage a set of company stats to reach a chosen victory condition. The central tension is simple: grow the community without killing the business, or monetize without losing trust.
+- [Cloudflare Workers Deployment](https://fork-or-profit.evilbanana.workers.dev)
 
-Core stats include `cash`, `revenue`, `community`, `growth`, `reputation`, `control`, `dev_speed`, `stability`, `pressure`, `trust`, and `risk`.
+## Screenshots
 
-## Game Loop
+### Title Screen
 
-1. Choose a company archetype, industry/domain, organization model, and player roles.
-2. Reveal an event card and decide how to respond.
-3. Play strategy cards by role.
-4. Resolve effects, update stats, and check win/lose conditions.
+![Fork or Profit title screen](./docs/screenshots/title-screen.png)
 
-## Win Modes
+### In-Game Screen
 
-- Survival: keep `cash > 0` and `community > 0` for 12 turns.
-- IPO: reach high `revenue` and `reputation` while keeping `pressure` under control.
-- Open-Source Legend: maximize `community` and `growth`.
-- Acquisition Exit: trigger an acquisition event with strong `reputation + revenue`.
-- Open-Core Balance: reach solid `community` and `revenue` together.
+![Fork or Profit gameplay screen](./docs/screenshots/game-screen.png)
+
+## Core Experience
+
+You pick a role, choose a company archetype, and chase a victory condition while managing conflicting company metrics.
+
+Each round follows a clear loop:
+
+1. **Event phase**: respond to a narrative event with strategic choices.
+2. **Action phase**: spend Action Points to play cards.
+3. **Resolution phase**: apply effects, update stats, and check win/lose conditions.
+
+Primary stats include:
+`cash`, `revenue`, `community`, `growth`, `reputation`, `control`, `dev_speed`, `stability`, `pressure`, `trust`, `risk`.
+
+## Game Modes
+
+- **Survival**: keep cash and community above 0 through Round 12.
+- **IPO**: reach revenue >= 30 and reputation >= 15 by Round 20.
+- **OSS Legend**: reach community >= 30 and growth >= 20 by Round 20.
+- **Acquisition Exit**: trigger an acquisition event and satisfy reputation + revenue >= 25.
+- **Open-Core**: reach both community >= 15 and revenue >= 15 by Round 20.
+
+## Controls
+
+- `Tab`: switch setup panel focus.
+- `Arrow Left / Right`: change role, company, or mode in setup.
+- `Arrow Up / Down`: choose event options.
+- `1-9`: quick-play cards in action phase.
+- `Enter`: confirm current option or card.
+- `E`: end action turn.
+- `S`: toggle detailed status panel.
+- `H`: open help overlay.
+- `I`: open Intel panel.
+- `Esc`: close overlays.
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- `pnpm`
+
+### Run Locally
+
+```bash
+pnpm install
+pnpm run dev
+```
+
+Open `http://localhost:5173`.
+
+### Build
+
+```bash
+pnpm run build
+```
+
+### Deploy to Cloudflare
+
+```bash
+pnpm run deploy
+```
+
+## Cloudflare Bindings (D1 + KV)
+
+Update `wrangler.jsonc` with your real IDs for:
+
+- `d1_databases`
+- `kv_namespaces`
+
+Generate typed bindings after Wrangler is configured:
+
+```bash
+pnpm run cf-typegen
+```
 
 ## Design Docs
 
@@ -37,34 +105,6 @@ Core stats include `cash`, `revenue`, `community`, `growth`, `reputation`, `cont
 - [design/strategy-cards.md](./design/strategy-cards.md)
 - [design/events.md](./design/events.md)
 - [design/company-archetypes.md](./design/company-archetypes.md)
-
-## Getting Started
-
-```bash
-pnpm install
-pnpm run dev
-```
-
-```bash
-pnpm run deploy
-```
-
-## Cloudflare D1 + KV Bindings
-
-Update the placeholder values in `wrangler.jsonc` for `d1_databases` and `kv_namespaces`.
-If you want typed bindings, generate them after configuring Wrangler:
-
-```bash
-pnpm run cf-typegen
-```
-
-## Storage Utils
-
-Server-side helpers live in `src/server/storage.ts` and can be used inside the Worker:
-
-```ts
-import { d1Query, d1Exec, kvGetJson, kvPutJson } from './server/storage'
-```
 
 ## License
 
