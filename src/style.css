@@ -1220,12 +1220,14 @@ body {
 }
 
 .battle-card {
-  width: 170px;
-  min-width: 170px;
+  width: 186px;
+  min-width: 186px;
+  min-height: 232px;
   background: var(--panel);
   border: 2px solid var(--text-muted);
   display: flex;
   flex-direction: column;
+  gap: 4px;
   cursor: pointer;
   transition: transform 0.15s, border-color 0.15s;
   box-shadow: var(--pixel-shadow);
@@ -1272,6 +1274,8 @@ body {
   padding: 0 8px;
   flex: 1;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .card-bottom {
@@ -1279,6 +1283,7 @@ body {
   border-top: 1px solid var(--text-muted);
   font-family: var(--font-body);
   font-size: 0.9rem;
+  background: rgba(15, 15, 27, 0.35);
 }
 
 .card-effect-text {
@@ -2115,7 +2120,7 @@ body {
 
 @media (max-width: 600px) {
   .title-fork, .title-profit { font-size: 1.8rem; }
-  .battle-card { width: 140px; min-width: 140px; }
+  .battle-card { width: 156px; min-width: 156px; min-height: 220px; }
   .battle-ap-bar {
     gap: 6px;
   }
