@@ -13,13 +13,11 @@ Open-source or profit? **Fork or Profit** is a pixel-style strategy RPG/card gam
 
 ## Screenshots
 
-### Title Screen
-
-![Fork or Profit title screen](./docs/screenshots/title-screen.png)
-
-### In-Game Screen
-
-![Fork or Profit gameplay screen](./docs/screenshots/game-screen.png)
+| Start Selection | Running Screen 1 |
+| --- | --- |
+| ![Fork or Profit setup screen](./docs/screenshots/setup-screen.png) | ![Fork or Profit running screen 1](./docs/screenshots/game-running-1.png) |
+| Running Screen 2 | Running Screen 3 |
+| ![Fork or Profit running screen 2](./docs/screenshots/game-running-2.png) | ![Fork or Profit running screen 3](./docs/screenshots/game-running-3.png) |
 
 ## Core Experience
 

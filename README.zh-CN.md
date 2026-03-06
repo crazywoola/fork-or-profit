@@ -13,13 +13,11 @@
 
 ## 游戏截图
 
-### 标题界面
-
-![Fork or Profit 标题界面](./docs/screenshots/title-screen.png)
-
-### 对局界面
-
-![Fork or Profit 对局界面](./docs/screenshots/game-screen.png)
+| 开局选择界面 | 运行界面 1 |
+| --- | --- |
+| ![Fork or Profit 开局选择界面](./docs/screenshots/setup-screen.png) | ![Fork or Profit 运行界面 1](./docs/screenshots/game-running-1.png) |
+| 运行界面 2 | 运行界面 3 |
+| ![Fork or Profit 运行界面 2](./docs/screenshots/game-running-2.png) | ![Fork or Profit 运行界面 3](./docs/screenshots/game-running-3.png) |
 
 ## 核心玩法
 
