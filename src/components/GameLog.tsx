@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { PixelIcon } from './PixelIcon'
 import { PALETTE } from '../pixel/palette'
-import { englishText } from '../utils/english'
+import { getHistoryMessage } from '../i18n/content'
+import { useI18n } from '../i18n'
 import type { LogEntry, LogType } from '../engine/types'
 
 type Props = {
@@ -44,6 +45,7 @@ const LOG_TAG_BG: Record<LogType, string> = {
 }
 
 export function GameLog({ history }: Props) {
+  const { messages } = useI18n()
   const [activeTab, setActiveTab] = useState<LogType | 'all'>('all')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -74,7 +76,7 @@ export function GameLog({ history }: Props) {
       </div>
       <div className="log-scroll" ref={scrollRef}>
         {displayed.length === 0 && (
-          <div className="log-empty">No entries yet.</div>
+          <div className="log-empty">{messages.log.empty}</div>
         )}
         {displayed.map((entry, i) => (
           <div key={history.length - i} className="log-entry-row">
@@ -86,7 +88,7 @@ export function GameLog({ history }: Props) {
               {LOG_TAG_LABELS[entry.type]}
             </span>
             <span className="log-round">R{entry.round}</span>
-            <span className="log-msg">{englishText(entry.message, 'System update.')}</span>
+            <span className="log-msg">{getHistoryMessage(entry.message)}</span>
           </div>
         ))}
       </div>

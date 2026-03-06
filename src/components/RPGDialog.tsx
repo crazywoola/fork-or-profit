@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { TypeWriter } from './TypeWriter'
 import { EventCategoryIcon, PixelIcon } from './PixelIcon'
-import { EVENT_DESCRIPTION_TRANSLATIONS } from '../data/event-translations'
 import { CATEGORY_COLORS, PALETTE } from '../pixel/palette'
-import { EVENT_OPTION_TRANSLATIONS } from '../data/event-option-translations'
-import { englishText } from '../utils/english'
+import { formatEffect, getEventDescription, getEventOptionDescription, getEventOptionLabel } from '../i18n/content'
+import { useI18n } from '../i18n'
 import type { GameEvent } from '../engine/types'
 
 type Props = {
@@ -12,21 +11,8 @@ type Props = {
   onResolve: (optionIndex: number) => void
 }
 
-const STAT_LABELS: Record<string, string> = {
-  cash: 'cash',
-  revenue: 'revenue',
-  community: 'community',
-  growth: 'growth',
-  reputation: 'reputation',
-  control: 'control',
-  dev_speed: 'dev speed',
-  stability: 'stability',
-  pressure: 'pressure',
-  trust: 'trust',
-  risk: 'risk',
-}
-
 export function RPGDialog({ event, onResolve }: Props) {
+  const { messages } = useI18n()
   const [textDone, setTextDone] = useState(false)
   const [selectedIdx, setSelectedIdx] = useState(0)
   const [skipSignal, setSkipSignal] = useState(false)
@@ -70,30 +56,24 @@ export function RPGDialog({ event, onResolve }: Props) {
   }, [textDone, selectedIdx, event.options.length, onResolve])
 
   const catColor = CATEGORY_COLORS[event.category] ?? PALETTE.textDim
-  const eventDescription =
-    EVENT_DESCRIPTION_TRANSLATIONS[event.id] ??
-    englishText(event.description, 'A major change is affecting your company. Choose your response.')
-
-  const effectStr = (effect: Record<string, number>) => {
-    return Object.entries(effect)
-      .map(([k, v]) => `${STAT_LABELS[k] ?? k}: ${v > 0 ? '+' : ''}${v}`)
-      .join(', ')
-  }
+  const eventDescription = getEventDescription(event.id, event.description || messages.dialog.fallbackDescription)
 
   const optionLabel = (label: string, effect: Record<string, number>, idx: number) => {
-    const translated = EVENT_OPTION_TRANSLATIONS[event.id]?.[idx]?.label
+    const translated = getEventOptionLabel(event.id, idx, label)
     if (translated) return translated
-
-    const cleaned = englishText(label, '')
-    if (cleaned) return cleaned
-    const summary = effectStr(effect)
-    return summary ? `Option ${idx + 1}: ${summary}` : `Option ${idx + 1}`
+    const summary = formatEffect(effect)
+    return summary ? `${messages.dialog.option(idx)}: ${summary}` : messages.dialog.option(idx)
   }
 
   const optionDescription = (description: string | undefined, effect: Record<string, number>, idx: number) => {
-    const translated = EVENT_OPTION_TRANSLATIONS[event.id]?.[idx]?.description
-    if (translated) return translated
-    return englishText(description, effectStr(effect))
+    return getEventOptionDescription(event.id, idx, description || formatEffect(effect))
+  }
+
+  const optionFuture = (idx: number) => {
+    const option = event.options[idx]
+    if (option.consequenceHint) return option.consequenceHint
+    if (option.followupEventId || option.unlocks) return messages.dialog.futureBranch
+    return ''
   }
 
   return (
@@ -109,17 +89,20 @@ export function RPGDialog({ event, onResolve }: Props) {
         </div>
 
         <div className="rpg-dialog-body">
-          <div className="rpg-dialog-title">
-            <span className="event-tag" style={{ backgroundColor: catColor }}>
-              <EventCategoryIcon category={event.category} size={10} />
-              {event.category}
-            </span>
-            <h3>{englishText(event.title, 'Critical Event')}</h3>
+          <div className="rpg-dialog-header">
+            <div className="rpg-dialog-title">
+              <span className="event-tag" style={{ backgroundColor: catColor }}>
+                <EventCategoryIcon category={event.category} size={10} />
+                {event.category}
+              </span>
+              <h3>{event.title || messages.dialog.criticalEvent}</h3>
+            </div>
+            <p className="rpg-dialog-subtitle">{messages.dialog.subtitle}</p>
           </div>
 
-          <div className="rpg-dialog-text" title="Click or press Enter to skip">
+          <div className="rpg-dialog-text" title={messages.dialog.skipTitle}>
             <TypeWriter text={eventDescription} speed={25} onComplete={() => setTextDone(true)} skipSignal={skipSignal} />
-            {!textDone && <span className="tw-skip-hint">[ click or Enter to skip ]</span>}
+            {!textDone && <span className="tw-skip-hint">{messages.dialog.skipHint}</span>}
           </div>
 
           {textDone && (
@@ -131,14 +114,22 @@ export function RPGDialog({ event, onResolve }: Props) {
                   onClick={() => onResolve(idx)}
                   onMouseEnter={() => setSelectedIdx(idx)}
                 >
-                  <span className="option-cursor">
-                    {idx === selectedIdx
-                      ? <PixelIcon name="cursor" size={12} color={PALETTE.highlight} />
-                      : <span style={{ width: 12, display: 'inline-block' }} />
-                    }
-                  </span>
-                  <span className="option-label">{optionLabel(opt.label, opt.effect, idx)}</span>
+                  <div className="rpg-option-main">
+                    <span className="option-cursor">
+                      {idx === selectedIdx
+                        ? <PixelIcon name="cursor" size={12} color={PALETTE.highlight} />
+                        : <span style={{ width: 12, display: 'inline-block' }} />
+                      }
+                    </span>
+                    <span className="option-label">{optionLabel(opt.label, opt.effect, idx)}</span>
+                  </div>
+                  {formatEffect(opt.effect) && (
+                    <span className="option-impact">{messages.dialog.immediate}: {formatEffect(opt.effect)}</span>
+                  )}
                   <span className="option-effect">{optionDescription(opt.description, opt.effect, idx)}</span>
+                  {optionFuture(idx) && (
+                    <span className="option-future">{messages.dialog.future}: {optionFuture(idx)}</span>
+                  )}
                 </button>
               ))}
             </div>

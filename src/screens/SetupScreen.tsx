@@ -5,7 +5,18 @@ import { gameModes, organizations } from '../data/game'
 import { STRATEGY_CARDS } from '../data/cards'
 import { PALETTE } from '../pixel/palette'
 import { PixelPortrait, CompanyPixelIcon, PixelIcon } from '../components/PixelIcon'
-import { englishText, roleNameFromId, roleTitleFromId, titleFromId } from '../utils/english'
+import {
+  getModeGoal,
+  getModeName,
+  getRoleFocus,
+  getRoleName,
+  getRolePerk,
+  getRoleTitle,
+  getStatLabel,
+  getTemplateSummary,
+} from '../i18n/content'
+import { titleFromId } from '../utils/english'
+import { useI18n } from '../i18n'
 import type { GameSetup } from '../App'
 
 type Props = { onConfirm: (setup: GameSetup) => void }
@@ -20,14 +31,6 @@ const RECOMMENDED_COMBOS: Record<string, string[]> = {
 const BEGINNER_ROLES = new Set(['ceo', 'cto', 'pm'])
 const BEGINNER_TEMPLATES = new Set(['mongodb', 'redis', 'dify'])
 
-const STAT_TOOLTIPS: Record<string, string> = {
-  CASH: 'Money in the bank. Reach 0 and the company dies.',
-  COMMUNITY: 'Open-source community strength. Reach 0 and the project dies.',
-  GROWTH: 'User adoption momentum. Needed for Legend mode.',
-  REPUTATION: 'Brand trust with customers. Needed for IPO mode.',
-  REVENUE: 'Monthly income. Offsets burn rate each round.',
-}
-
 const namePrefixes = ['Aurora', 'Nimbus', 'Vertex', 'Pulse', 'Atlas', 'Nova', 'Cobalt', 'Lattice']
 const nameSuffixes = ['Labs', 'Works', 'Cloud', 'Systems', 'Studio', 'Forge', 'Core', 'Dynamics']
 
@@ -37,15 +40,15 @@ function randomName() {
   return `${p} ${s}`
 }
 
-function StatPreview({ label, value, max, color, tooltip, onHover, onLeave }: {
-  label: string; value: number; max: number; color: string;
-  tooltip?: string; onHover?: (label: string) => void; onLeave?: () => void;
+function StatPreview({ statId, label, value, max, color, tooltip, onHover, onLeave }: {
+  statId: string; label: string; value: number; max: number; color: string;
+  tooltip?: string; onHover?: (statId: string) => void; onLeave?: () => void;
 }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100))
   return (
     <div
       className="setup-stat-row"
-      onMouseEnter={() => onHover?.(label)}
+      onMouseEnter={() => onHover?.(statId)}
       onMouseLeave={onLeave}
       title={tooltip}
     >
@@ -66,28 +69,25 @@ const MODE_ICONS: Record<string, string> = {
   'open-core': '⚖',
 }
 
-const MODE_FALLBACK_NAMES: Record<string, string> = {
-  survival: 'Survival',
-  ipo: 'IPO',
-  legend: 'OSS Legend',
-  acquisition: 'Acquisition Exit',
-  'open-core': 'Open Core',
-}
-
-const MODE_FALLBACK_GOALS: Record<string, string> = {
-  survival: 'Keep both cash and community above 0 through Round 12.',
-  ipo: 'Reach revenue >= 30 and reputation >= 15 by Round 20.',
-  legend: 'Reach community >= 30 and growth >= 20 by Round 20.',
-  acquisition: 'Trigger an acquisition and satisfy exit conditions.',
-  'open-core': 'Reach community >= 15 and revenue >= 15 by Round 20.',
-}
-
 export function SetupScreen({ onConfirm }: Props) {
-  const [roleIdx, setRoleIdx] = useState(0)
-  const [templateIdx, setTemplateIdx] = useState(0)
-  const [modeIdx, setModeIdx] = useState(0)
-  const [orgIdx, setOrgIdx] = useState(0)
-  const [companyName, setCompanyName] = useState(companyTemplates[0].name)
+  const { messages } = useI18n()
+  const [initialSelection] = useState(() => {
+    const roleIdx = Math.floor(Math.random() * roles.length)
+    const templateIdx = Math.floor(Math.random() * companyTemplates.length)
+    return {
+      roleIdx,
+      templateIdx,
+      modeIdx: 0,
+      orgIdx: 0,
+      companyName: randomName(),
+    }
+  })
+
+  const [roleIdx, setRoleIdx] = useState(initialSelection.roleIdx)
+  const [templateIdx, setTemplateIdx] = useState(initialSelection.templateIdx)
+  const [modeIdx, setModeIdx] = useState(initialSelection.modeIdx)
+  const [orgIdx, setOrgIdx] = useState(initialSelection.orgIdx)
+  const [companyName, setCompanyName] = useState(initialSelection.companyName)
   const [activePanel, setActivePanel] = useState<'role' | 'company' | 'mode'>('role')
   const [hoveredStat, setHoveredStat] = useState<string | null>(null)
 
@@ -179,11 +179,11 @@ export function SetupScreen({ onConfirm }: Props) {
   const mods = template.modifiers
   const rb = role.statBonuses
   const baseStats = [
-    { label: 'CASH',       value: 10 + (mods.cash ?? 0)       + (rb.cash ?? 0),       max: 50, color: PALETTE.cashGold },
-    { label: 'COMMUNITY',  value: 5  + (mods.community ?? 0)  + (rb.community ?? 0),  max: 50, color: PALETTE.communityTeal },
-    { label: 'GROWTH',     value: 3  + (mods.growth ?? 0)     + (rb.growth ?? 0),     max: 50, color: PALETTE.growthPink },
-    { label: 'REPUTATION', value: 5  + (mods.reputation ?? 0) + (rb.reputation ?? 0), max: 50, color: PALETTE.accentGold },
-    { label: 'REVENUE',    value: 0  + (mods.revenue ?? 0)    + (rb.revenue ?? 0),    max: 50, color: PALETTE.orange },
+    { statId: 'cash',       value: 10 + (mods.cash ?? 0)       + (rb.cash ?? 0),       max: 50, color: PALETTE.cashGold },
+    { statId: 'community',  value: 5  + (mods.community ?? 0)  + (rb.community ?? 0),  max: 50, color: PALETTE.communityTeal },
+    { statId: 'growth',     value: 3  + (mods.growth ?? 0)     + (rb.growth ?? 0),     max: 50, color: PALETTE.growthPink },
+    { statId: 'reputation', value: 5  + (mods.reputation ?? 0) + (rb.reputation ?? 0), max: 50, color: PALETTE.accentGold },
+    { statId: 'revenue',    value: 0  + (mods.revenue ?? 0)    + (rb.revenue ?? 0),    max: 50, color: PALETTE.orange },
   ]
 
   const deckSize = useMemo(() => {
@@ -207,38 +207,38 @@ export function SetupScreen({ onConfirm }: Props) {
   return (
     <div className="screen setup-screen">
       <div className="setup-header">
-        <h1>CHARACTER SELECT</h1>
-        <p className="setup-hint">[Tab] Switch Panel · [←→] Change Option · [Enter] Start</p>
+        <h1>{messages.setup.title}</h1>
+        <p className="setup-hint">{messages.setup.hint}</p>
       </div>
 
       <div className="setup-panels">
         {/* ── Role ── */}
         <div className={`setup-panel ${activePanel === 'role' ? 'active' : ''}`} onClick={() => setActivePanel('role')}>
-          {BEGINNER_ROLES.has(role.id) && <span className="recommended-badge">BEGINNER</span>}
-          <h2>ROLE</h2>
+          {BEGINNER_ROLES.has(role.id) && <span className="recommended-badge">{messages.setup.beginner}</span>}
+          <h2>{messages.setup.role}</h2>
           <div className="setup-selector">
             <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setRoleIdx(i => (i - 1 + roles.length) % roles.length) }}>
               <PixelIcon name="arrow-left" size={14} />
             </button>
             <div className="setup-entity">
               <PixelPortrait archetype={role.archetype} size={80} />
-              <h3>{englishText(role.name, roleNameFromId(role.id))}</h3>
-              <p className="role-title">{englishText(role.title, roleTitleFromId(role.id))}</p>
+              <h3>{getRoleName(role.id, role.name)}</h3>
+              <p className="role-title">{getRoleTitle(role.id, role.title)}</p>
             </div>
             <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setRoleIdx(i => (i + 1) % roles.length) }}>
               <PixelIcon name="arrow-right" size={14} />
             </button>
           </div>
-          <p className="role-focus">{englishText(role.focus, 'Lead your team through strategic trade-offs.')}</p>
+          <p className="role-focus">{getRoleFocus(role.id, role.focus || messages.setup.fallbackRoleFocus)}</p>
           <div className="role-perks">
             {role.perks.slice(0, 3).map((p, i) => (
               <span key={i} className="perk-chip">
-                <PixelIcon name="star" size={8} color={PALETTE.accentGold} /> {englishText(p, `Perk ${i + 1}`)}
+                <PixelIcon name="star" size={8} color={PALETTE.accentGold} /> {getRolePerk(role.id, i, p)}
               </span>
             ))}
           </div>
           <button className="pixel-btn" onClick={handleRandomRole}>
-            <PixelIcon name="dice" size={10} /> RANDOM
+            <PixelIcon name="dice" size={10} /> {messages.setup.random}
           </button>
         </div>
 
@@ -246,8 +246,8 @@ export function SetupScreen({ onConfirm }: Props) {
 
         {/* ── Company ── */}
         <div className={`setup-panel ${activePanel === 'company' ? 'active' : ''}`} onClick={() => setActivePanel('company')}>
-          {BEGINNER_TEMPLATES.has(template.id) && <span className="recommended-badge">RECOMMENDED</span>}
-          <h2>COMPANY</h2>
+          {BEGINNER_TEMPLATES.has(template.id) && <span className="recommended-badge">{messages.setup.recommended}</span>}
+          <h2>{messages.setup.company}</h2>
           <div className="setup-selector">
             <button className="arrow-btn" onClick={(e) => {
               e.stopPropagation()
@@ -259,8 +259,8 @@ export function SetupScreen({ onConfirm }: Props) {
               <div className="company-icon-wrap">
                 <CompanyPixelIcon templateId={template.id} size={48} />
               </div>
-              <h3>{englishText(template.name, titleFromId(template.id))}</h3>
-              <p className="role-title">{englishText(template.phase, 'Growth Stage')}</p>
+              <h3>{template.name || titleFromId(template.id)}</h3>
+              <p className="role-title">{template.phase || messages.setup.growthStage}</p>
             </div>
             <button className="arrow-btn" onClick={(e) => {
               e.stopPropagation()
@@ -269,23 +269,27 @@ export function SetupScreen({ onConfirm }: Props) {
               <PixelIcon name="arrow-right" size={14} />
             </button>
           </div>
-          <p className="role-focus">{englishText(template.summary, 'A distinct company archetype with different trade-offs.')}</p>
+          <p className="role-focus">{getTemplateSummary(template.id, template.summary || messages.setup.fallbackTemplateSummary)}</p>
           <div className="setup-stats-preview">
             {baseStats.map(s => (
               <StatPreview
-                key={s.label}
-                {...s}
-                tooltip={STAT_TOOLTIPS[s.label]}
+                key={s.statId}
+                statId={s.statId}
+                label={getStatLabel(s.statId, 'upper')}
+                value={s.value}
+                max={s.max}
+                color={s.color}
+                tooltip={messages.setup.statTooltips[s.statId as keyof typeof messages.setup.statTooltips]}
                 onHover={setHoveredStat}
                 onLeave={() => setHoveredStat(null)}
               />
             ))}
-            {hoveredStat && STAT_TOOLTIPS[hoveredStat] && (
-              <div className="stat-tooltip-inline">{STAT_TOOLTIPS[hoveredStat]}</div>
+            {hoveredStat && messages.setup.statTooltips[hoveredStat as keyof typeof messages.setup.statTooltips] && (
+              <div className="stat-tooltip-inline">{messages.setup.statTooltips[hoveredStat as keyof typeof messages.setup.statTooltips]}</div>
             )}
           </div>
           <div className="setup-deck-info">
-            <span className="deck-count">{deckSize} cards in deck</span>
+            <span className="deck-count">{messages.setup.deckCount(deckSize)}</span>
             {combinedMultipliers.length > 0 && (
               <div className="deck-multipliers">
                 {combinedMultipliers.map(m => (
@@ -297,17 +301,17 @@ export function SetupScreen({ onConfirm }: Props) {
             )}
           </div>
           <div className="setup-name-input">
-            <label>NAME:</label>
+            <label>{messages.setup.nameLabel}</label>
             <input
               type="text"
               value={companyName}
               maxLength={24}
               onChange={e => setCompanyName(e.target.value)}
-              placeholder="Company name..."
+              placeholder={messages.setup.namePlaceholder}
             />
           </div>
           <button className="pixel-btn" onClick={handleRandomCompany}>
-            <PixelIcon name="dice" size={10} /> RANDOM
+            <PixelIcon name="dice" size={10} /> {messages.setup.random}
           </button>
         </div>
 
@@ -318,7 +322,7 @@ export function SetupScreen({ onConfirm }: Props) {
           className={`setup-panel mode-panel ${activePanel === 'mode' ? 'active' : ''}`}
           onClick={() => setActivePanel('mode')}
         >
-          <h2>GAME MODE</h2>
+          <h2>{messages.setup.gameMode}</h2>
           <div className="setup-selector">
             <button className="arrow-btn" onClick={(e) => {
               e.stopPropagation()
@@ -328,7 +332,7 @@ export function SetupScreen({ onConfirm }: Props) {
             </button>
             <div className="setup-entity">
               <div className="mode-icon-large">{MODE_ICONS[mode.id] ?? '?'}</div>
-              <h3>{englishText(mode.name, MODE_FALLBACK_NAMES[mode.id] ?? titleFromId(mode.id))}</h3>
+              <h3>{getModeName(mode.id, mode.name || titleFromId(mode.id))}</h3>
             </div>
             <button className="arrow-btn" onClick={(e) => {
               e.stopPropagation()
@@ -339,8 +343,8 @@ export function SetupScreen({ onConfirm }: Props) {
           </div>
 
           <div className="mode-goal-box">
-            <span className="mode-goal-label">Victory Goal</span>
-            <p className="mode-goal-text">{englishText(mode.goal, MODE_FALLBACK_GOALS[mode.id] ?? 'Complete your strategic objective before time runs out.')}</p>
+            <span className="mode-goal-label">{messages.setup.victoryGoal}</span>
+            <p className="mode-goal-text">{getModeGoal(mode.id, mode.goal || messages.setup.fallbackGoal)}</p>
           </div>
 
           <div className="mode-all-list">
@@ -351,13 +355,13 @@ export function SetupScreen({ onConfirm }: Props) {
                 onClick={(e) => { e.stopPropagation(); setModeIdx(i) }}
               >
                 <span className="mode-item-icon">{MODE_ICONS[m.id] ?? '?'}</span>
-                <span className="mode-item-name">{englishText(m.name, MODE_FALLBACK_NAMES[m.id] ?? titleFromId(m.id))}</span>
+                <span className="mode-item-name">{getModeName(m.id, m.name || titleFromId(m.id))}</span>
               </div>
             ))}
           </div>
 
           <div className="org-selector">
-            <span className="org-selector-label">ORGANIZATION</span>
+            <span className="org-selector-label">{messages.setup.organization}</span>
             <div className="org-selector-list">
               {organizations.map((o, i) => (
                 <div
@@ -370,7 +374,7 @@ export function SetupScreen({ onConfirm }: Props) {
               ))}
             </div>
             <div className="org-rule-box">
-              <span className="org-rule-label">Rule</span>
+              <span className="org-rule-label">{messages.setup.rule}</span>
               <p className="org-rule-text">{org.specialRule}</p>
             </div>
           </div>
@@ -379,16 +383,16 @@ export function SetupScreen({ onConfirm }: Props) {
 
       <div className="setup-footer">
         <button className="pixel-btn" onClick={handleQuickStart}>
-          <PixelIcon name="play" size={10} /> QUICK START
+          <PixelIcon name="play" size={10} /> {messages.setup.quickStart}
         </button>
         <button className="pixel-btn" onClick={handleRandomAll}>
-          <PixelIcon name="dice" size={10} /> RANDOM ALL
+          <PixelIcon name="dice" size={10} /> {messages.setup.randomAll}
         </button>
         <button className="pixel-btn primary" onClick={handleConfirm}>
-          <PixelIcon name="play" size={10} /> START GAME
+          <PixelIcon name="play" size={10} /> {messages.setup.startGame}
         </button>
         {isRecommendedCombo && (
-          <span className="recommended-combo-hint">Good combo for this archetype!</span>
+          <span className="recommended-combo-hint">{messages.setup.goodCombo}</span>
         )}
       </div>
     </div>

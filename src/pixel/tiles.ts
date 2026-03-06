@@ -25,6 +25,8 @@ export type RoomDef = {
   id: string
   name: string
   archetype: string
+  summary: string
+  bonusHint: string
   x: number
   y: number
   w: number
@@ -32,14 +34,14 @@ export type RoomDef = {
 }
 
 export const OFFICE_ROOMS: RoomDef[] = [
-  { id: 'hq',        name: 'HQ',          archetype: 'executive',   x: 8,  y: 5,  w: 6, h: 5 },
-  { id: 'eng',       name: 'Engineering', archetype: 'engineering', x: 1,  y: 1,  w: 5, h: 4 },
-  { id: 'product',   name: 'Product',     archetype: 'product',     x: 16, y: 1,  w: 5, h: 4 },
-  { id: 'growth',    name: 'Growth',      archetype: 'growth',      x: 1,  y: 11, w: 5, h: 4 },
-  { id: 'revenue',   name: 'Revenue',     archetype: 'revenue',     x: 16, y: 11, w: 5, h: 4 },
-  { id: 'community', name: 'Community',   archetype: 'community',   x: 1,  y: 6,  w: 5, h: 4 },
-  { id: 'finance',   name: 'Finance',     archetype: 'finance',     x: 16, y: 6,  w: 5, h: 4 },
-  { id: 'platform',  name: 'Platform',    archetype: 'operations',  x: 8,  y: 12, w: 6, h: 4 },
+  { id: 'hq',        name: 'HQ',          archetype: 'executive',   summary: 'A leadership visit stabilizes reputation and boosts all strategy lines slightly.', bonusHint: '+REP, all cards +5%', x: 8,  y: 5,  w: 6, h: 5 },
+  { id: 'eng',       name: 'Engineering', archetype: 'engineering', summary: 'Sharpen technical execution and soften tech crises.', bonusHint: 'Open Source/Operations +', x: 1,  y: 1,  w: 5, h: 4 },
+  { id: 'product',   name: 'Product',     archetype: 'product',     summary: 'Convert roadmap clarity into stronger product and platform moves.', bonusHint: 'Growth/Monetization +', x: 16, y: 1,  w: 5, h: 4 },
+  { id: 'growth',    name: 'Growth',      archetype: 'growth',      summary: 'Push launches, media spikes, and user momentum harder.', bonusHint: 'Growth +, media bias', x: 1,  y: 11, w: 5, h: 4 },
+  { id: 'revenue',   name: 'Revenue',     archetype: 'revenue',     summary: 'Lean into enterprise capture and deal flow.', bonusHint: 'Monetization/Finance +', x: 16, y: 11, w: 5, h: 4 },
+  { id: 'community', name: 'Community',   archetype: 'community',   summary: 'Strengthen trust, contributors, and ecosystem goodwill.', bonusHint: 'Community/TRUST, OSS +', x: 1,  y: 6,  w: 5, h: 4 },
+  { id: 'finance',   name: 'Finance',     archetype: 'finance',     summary: 'Buy runway and prepare for regulators or investors.', bonusHint: '+Cash, Finance/Operations +', x: 16, y: 6,  w: 5, h: 4 },
+  { id: 'platform',  name: 'Platform',    archetype: 'operations',  summary: 'Accelerate ecosystem flywheels and combo-heavy turns.', bonusHint: 'Synergy +, ecosystem bias', x: 8,  y: 12, w: 6, h: 4 },
 ]
 
 export const MAP_WIDTH = 22

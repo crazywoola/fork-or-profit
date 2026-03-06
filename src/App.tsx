@@ -5,6 +5,7 @@ import { GameScreen } from './screens/GameScreen'
 import { GameOverScreen } from './screens/GameOverScreen'
 import { useGameEngine } from './hooks/useGameEngine'
 import { isMuted, setMuted } from './audio/sfx'
+import { useI18n } from './i18n'
 import type { CompanyTemplate } from './data/company-templates'
 import type { RoleProfile } from './data/roles'
 
@@ -19,6 +20,7 @@ export type GameSetup = {
 }
 
 export default function App() {
+  const { messages } = useI18n()
   const [screen, setScreen] = useState<Screen>('title')
   const [setup, setSetup] = useState<GameSetup | null>(null)
   const [gameResult, setGameResult] = useState<'win' | 'lose'>('lose')
@@ -59,7 +61,7 @@ export default function App() {
   return (
     <div className="game-root">
       <button className="audio-toggle" onClick={toggleAudio}>
-        {audioMuted ? 'SOUND OFF' : 'SOUND ON'}
+        {audioMuted ? messages.app.soundOff : messages.app.soundOn}
       </button>
       {screen === 'title' && (
         <TitleScreen onStart={handleStartPress} />

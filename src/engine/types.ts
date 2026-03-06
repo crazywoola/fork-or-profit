@@ -15,6 +15,10 @@ export type StatEffect = Partial<Record<StatId, number>>
 
 export type CardCategory = 'Open Source' | 'Monetization' | 'Growth' | 'Operations' | 'Finance'
 
+export type FactionId = 'community' | 'investors' | 'enterprise' | 'regulators' | 'ecosystem'
+
+export type GameStage = 'seed' | 'growth' | 'scale'
+
 export interface Card {
   id: string
   title: string
@@ -29,6 +33,7 @@ export interface Card {
   notes?: string
   core?: boolean
   archetypes?: string[]
+  setsFlags?: string[]
   /** If true, this card is removed from the game after being played (not discarded). */
   oneshot?: boolean
 }
@@ -42,6 +47,14 @@ export interface EventOption {
   effect: StatEffect
   description?: string
   unlocks?: string
+  setsFlags?: string[]
+  clearsFlags?: string[]
+  requiresFlagsAll?: string[]
+  requiresFlagsAny?: string[]
+  factionEffects?: Partial<Record<FactionId, number>>
+  followupEventId?: string
+  followupInRounds?: number
+  consequenceHint?: string
 }
 
 export interface GameEvent {
@@ -54,6 +67,11 @@ export interface GameEvent {
   prototype?: string
   duration?: number
   triggerCondition?: string
+  ongoingEffect?: StatEffect
+  requiresFlagsAll?: string[]
+  requiresFlagsAny?: string[]
+  blocksFlags?: string[]
+  weightTags?: string[]
   /** Controls which game phase this event can appear in. Defaults to 'any'. */
   phase?: GamePhase
 }
@@ -81,11 +99,23 @@ export interface ActiveEffect {
   type: ActiveEffectType
   remainingRounds: number  // -1 = permanent; >0 = countdown
   label: string
+  source?: 'card' | 'event' | 'room' | 'talent' | 'system'
   statEffects?: StatEffect
   category?: CardCategory
   multiplier?: number      // additive boost for next_card_boost (0.2 = +20%)
   eventId?: string
   burnRateDelta?: number
+}
+
+export interface RoomBonusState {
+  roomId: string
+  label: string
+  summary: string
+  categoryBoosts: Partial<Record<CardCategory, number>>
+  immediateEffect?: StatEffect
+  nextEventWeights?: Partial<Record<string, number>>
+  synergyBoost?: StatEffect
+  factionShift?: Partial<Record<FactionId, number>>
 }
 
 // ── Card effect preview (aggregated total impact) ────────────────────────────
@@ -99,6 +129,9 @@ export interface CardPreview {
   multiplier: number
   synergyBonus: StatEffect | null
   synergyLabel: string | null
+  roomBonus: StatEffect
+  orgBonus: StatEffect
+  bonusSources: string[]
 }
 
 // ── Round summary ────────────────────────────────────────────────────────────
@@ -112,6 +145,8 @@ export interface RoundSummary {
   expiredEffects: string[]
   newEffects: string[]
   previousStats: Record<StatId, number>
+  selectedRoomId: string | null
+  pendingThreats: string[]
 }
 
 // ── Game state ───────────────────────────────────────────────────────────────
@@ -119,7 +154,7 @@ export interface RoundSummary {
 export interface GameState {
   stats: Record<StatId, number>
   round: number
-  phase: 'event' | 'action' | 'resolution' | 'summary'
+  phase: 'event' | 'planning' | 'action' | 'resolution' | 'summary'
   activeEvent: GameEvent | null
   hand: Card[]
   deck: Card[]
@@ -145,5 +180,13 @@ export interface GameState {
   roundSummary: RoundSummary | null
   cardsPlayedThisRound: string[] // card IDs played in current round (synergy tracking)
   previousRoundStats: Record<StatId, number> | null // stats at start of round (for trend arrows)
-  gameStage: 'seed' | 'growth' | 'scale'  // phase-specific mechanics
+  gameStage: GameStage  // phase-specific mechanics
+  worldFlags: string[]
+  resolvedChains: string[]
+  factionReputation: Record<FactionId, number>
+  selectedRoomId: string | null
+  roomBonus: RoomBonusState | null
+  progressionSelections: string[]
+  stageMilestones: GameStage[]
+  pendingThreats: string[]
 }

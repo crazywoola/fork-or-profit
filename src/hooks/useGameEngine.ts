@@ -12,14 +12,41 @@ export function useGameEngine() {
       ...s,
       stats: { ...s.stats },
       hand: [...s.hand],
+      deck: [...s.deck],
+      discardPile: [...s.discardPile],
       history: [...s.history],
       effectMultipliers: { ...s.effectMultipliers },
-      activeEffects: [...s.activeEffects],
+      activeEffects: s.activeEffects.map(effect => ({ ...effect })),
       playedCardIds: [...s.playedCardIds],
       usedEventIds: [...s.usedEventIds],
       cardsPlayedThisRound: [...s.cardsPlayedThisRound],
       previousRoundStats: s.previousRoundStats ? { ...s.previousRoundStats } : null,
-      roundSummary: s.roundSummary ? { ...s.roundSummary } : null,
+      roundSummary: s.roundSummary
+        ? {
+            ...s.roundSummary,
+            statDeltas: { ...s.roundSummary.statDeltas },
+            previousStats: { ...s.roundSummary.previousStats },
+            expiredEffects: [...s.roundSummary.expiredEffects],
+            newEffects: [...s.roundSummary.newEffects],
+            pendingThreats: [...s.roundSummary.pendingThreats],
+          }
+        : null,
+      worldFlags: [...s.worldFlags],
+      resolvedChains: [...s.resolvedChains],
+      factionReputation: { ...s.factionReputation },
+      roomBonus: s.roomBonus
+        ? {
+            ...s.roomBonus,
+            categoryBoosts: { ...s.roomBonus.categoryBoosts },
+            immediateEffect: s.roomBonus.immediateEffect ? { ...s.roomBonus.immediateEffect } : undefined,
+            nextEventWeights: s.roomBonus.nextEventWeights ? { ...s.roomBonus.nextEventWeights } : undefined,
+            synergyBoost: s.roomBonus.synergyBoost ? { ...s.roomBonus.synergyBoost } : undefined,
+            factionShift: s.roomBonus.factionShift ? { ...s.roomBonus.factionShift } : undefined,
+          }
+        : null,
+      progressionSelections: [...s.progressionSelections],
+      stageMilestones: [...s.stageMilestones],
+      pendingThreats: [...s.pendingThreats],
     })
   }, [])
 
@@ -46,6 +73,10 @@ export function useGameEngine() {
     },
     playCard: (cardId: string) => {
       engineRef.current.playCard(cardId)
+      syncState()
+    },
+    chooseRoom: (roomId: string) => {
+      engineRef.current.chooseRoom(roomId)
       syncState()
     },
     endTurn: () => {

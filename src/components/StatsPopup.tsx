@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PixelIcon } from './PixelIcon'
+import { getStatLabel } from '../i18n/content'
 import type { GameState } from '../engine/types'
 
 type Props = {
@@ -16,18 +17,12 @@ export function StatsPopup({ gameState }: Props) {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const last = gameState.history[gameState.history.length - 1]
-    if (!last || last.type !== 'system') return
-
-    const match = last.message.match(/Net Income: (-?\d+)/)
-    if (match) {
-      const income = parseInt(match[1])
-      setChanges([{ key: 'cash', delta: income }])
-      setVisible(true)
-      const t = setTimeout(() => setVisible(false), 2000)
-      return () => clearTimeout(t)
-    }
-  }, [gameState.round])
+    if (!gameState.roundSummary) return
+    setChanges([{ key: 'cash', delta: gameState.roundSummary.netIncome }])
+    setVisible(true)
+    const timer = setTimeout(() => setVisible(false), 2000)
+    return () => clearTimeout(timer)
+  }, [gameState.roundSummary?.round])
 
   if (!visible || changes.length === 0) return null
 
@@ -36,7 +31,7 @@ export function StatsPopup({ gameState }: Props) {
       {changes.map((c, i) => (
         <div key={i} className={`stat-change ${c.delta >= 0 ? 'positive' : 'negative'}`}>
           <PixelIcon name={c.key} size={14} />
-          <span>{c.key.toUpperCase()}</span>
+          <span>{getStatLabel(c.key, 'upper')}</span>
           <span className="stat-delta">{c.delta >= 0 ? '+' : ''}{c.delta}</span>
         </div>
       ))}

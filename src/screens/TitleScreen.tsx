@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { PALETTE } from '../pixel/palette'
+import { useI18n } from '../i18n'
 
 type Props = { onStart: () => void }
 
 export function TitleScreen({ onStart }: Props) {
+  const { messages } = useI18n()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [blinkOn, setBlinkOn] = useState(true)
 
@@ -120,11 +122,11 @@ export function TitleScreen({ onStart }: Props) {
           <span className="title-or">or</span>
           <span className="title-profit">PROFIT</span>
         </h1>
-        <p className="title-subtitle">An Open Source Strategy RPG</p>
+        <p className="title-subtitle">{messages.title.subtitle}</p>
         <p className={`title-press-start ${blinkOn ? '' : 'hidden'}`}>
-          ▶ PRESS START
+          {messages.title.pressStart}
         </p>
-        <p className="title-version">v0.1.0 · PIXEL EDITION</p>
+        <p className="title-version">{messages.title.version}</p>
         <a
           className="title-github-link"
           href="https://github.com/crazywoola/fork-or-profit"
@@ -132,7 +134,7 @@ export function TitleScreen({ onStart }: Props) {
           rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
         >
-          GitHub
+          {messages.title.github}
         </a>
       </div>
     </div>

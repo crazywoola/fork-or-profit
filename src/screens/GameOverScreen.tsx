@@ -3,6 +3,8 @@ import { sfxVictory, sfxGameOver } from '../audio/sfx'
 import { PALETTE } from '../pixel/palette'
 import { PixelStatBar } from '../components/PixelStatBar'
 import { PixelIcon } from '../components/PixelIcon'
+import { getStatLabel } from '../i18n/content'
+import { useI18n } from '../i18n'
 import type { GameState } from '../engine/types'
 
 type Props = {
@@ -76,6 +78,7 @@ function Firework({ canvas }: { canvas: HTMLCanvasElement }) {
 }
 
 export function GameOverScreen({ result, gameState, onRestart, onNewGame }: Props) {
+  const { messages } = useI18n()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [blink, setBlink] = useState(true)
 
@@ -112,19 +115,19 @@ export function GameOverScreen({ result, gameState, onRestart, onNewGame }: Prop
         <h1 className={`gameover-title ${isWin ? 'win' : 'lose'}`}>
           {isWin ? (
             <>
-              <PixelIcon name="star" size={28} color={PALETTE.highlight} /> VICTORY! <PixelIcon name="star" size={28} color={PALETTE.highlight} />
+              <PixelIcon name="star" size={28} color={PALETTE.highlight} /> {messages.gameOver.victory} <PixelIcon name="star" size={28} color={PALETTE.highlight} />
             </>
-          ) : 'GAME OVER'}
+          ) : messages.gameOver.gameOver}
         </h1>
 
         {!isWin && (
           <p className="gameover-reason">
             {gameState?.victoryReason ||
-             (stats && stats.cash <= 0 ? 'Cash is depleted and the company is bankrupt.' :
-              stats && stats.community <= 0 ? 'Your open-source community collapsed.' :
-              stats && stats.risk >= 10 ? 'Risk exposure reached a critical limit.' :
-              stats && stats.pressure >= 10 ? 'External pressure broke team morale.' :
-              'You failed to reach the objective before the deadline.')}
+             (stats && stats.cash <= 0 ? messages.gameOver.bankruptcy :
+              stats && stats.community <= 0 ? messages.gameOver.communityCollapse :
+              stats && stats.risk >= 10 ? messages.gameOver.riskLimit :
+              stats && stats.pressure >= 10 ? messages.gameOver.pressureLimit :
+              messages.gameOver.fallbackLoseReason)}
           </p>
         )}
 
@@ -134,24 +137,24 @@ export function GameOverScreen({ result, gameState, onRestart, onNewGame }: Prop
 
         {stats && (
           <div className="gameover-stats">
-            <h3>FINAL STATUS</h3>
+            <h3>{messages.gameOver.finalStatus}</h3>
             <div className="gameover-stats-grid">
-              <PixelStatBar label="CASH" value={stats.cash} max={50} color={PALETTE.cashGold} icon="cash" />
-              <PixelStatBar label="REVENUE" value={stats.revenue} max={50} color={PALETTE.orange} icon="revenue" />
-              <PixelStatBar label="COMMUNITY" value={stats.community} max={50} color={PALETTE.communityTeal} icon="community" />
-              <PixelStatBar label="GROWTH" value={stats.growth} max={50} color={PALETTE.growthPink} icon="growth" />
-              <PixelStatBar label="REPUTATION" value={stats.reputation} max={50} color={PALETTE.accentGold} icon="reputation" />
+              <PixelStatBar label={getStatLabel('cash', 'upper')} value={stats.cash} max={50} color={PALETTE.cashGold} icon="cash" />
+              <PixelStatBar label={getStatLabel('revenue', 'upper')} value={stats.revenue} max={50} color={PALETTE.orange} icon="revenue" />
+              <PixelStatBar label={getStatLabel('community', 'upper')} value={stats.community} max={50} color={PALETTE.communityTeal} icon="community" />
+              <PixelStatBar label={getStatLabel('growth', 'upper')} value={stats.growth} max={50} color={PALETTE.growthPink} icon="growth" />
+              <PixelStatBar label={getStatLabel('reputation', 'upper')} value={stats.reputation} max={50} color={PALETTE.accentGold} icon="reputation" />
             </div>
-            <p className="gameover-rounds">Survived {gameState.round} rounds</p>
+            <p className="gameover-rounds">{messages.gameOver.survivedRounds(gameState.round)}</p>
           </div>
         )}
 
         <div className="gameover-actions">
           <button className="pixel-btn" onClick={onNewGame}>
-            <PixelIcon name="dice" size={10} /> NEW GAME
+            <PixelIcon name="dice" size={10} /> {messages.gameOver.newGame}
           </button>
           <button className={`pixel-btn primary ${blink ? '' : 'dim'}`} onClick={onRestart}>
-            <PixelIcon name="play" size={10} /> TITLE SCREEN
+            <PixelIcon name="play" size={10} /> {messages.gameOver.titleScreen}
           </button>
         </div>
       </div>

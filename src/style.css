@@ -31,7 +31,7 @@
   --pixel-border: 2px solid var(--text-muted);
   --pixel-shadow: 3px 3px 0px var(--black);
 
-  /* Golden ratio split for center gameplay area (canvas : dialog = 1.618 : 1) */
+  /* Center gameplay area defaults */
   --center-canvas-fr: 1.618fr;
   --center-dialog-fr: 1fr;
 }
@@ -535,6 +535,31 @@ body {
   align-items: stretch;
   justify-content: stretch;
   gap: 0;
+  transition: grid-template-columns 0.18s ease;
+}
+
+.game-screen.interaction-focus {
+  grid-template-columns: 288px 1fr 236px;
+}
+
+.game-screen.phase-planning {
+  --center-canvas-fr: 0.88fr;
+  --center-dialog-fr: 1.62fr;
+}
+
+.game-screen.phase-event {
+  --center-canvas-fr: 0.76fr;
+  --center-dialog-fr: 1.72fr;
+}
+
+.game-screen.phase-action {
+  --center-canvas-fr: 0.95fr;
+  --center-dialog-fr: 1.58fr;
+}
+
+.game-screen.phase-summary {
+  --center-canvas-fr: 1.18fr;
+  --center-dialog-fr: 0.92fr;
 }
 
 .game-center {
@@ -545,6 +570,7 @@ body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  transition: grid-template-rows 0.18s ease;
 }
 
 .game-world {
@@ -552,6 +578,12 @@ body {
   min-height: 0;
   overflow: hidden;
   background: var(--bg);
+  transition: opacity 0.18s ease, transform 0.18s ease, filter 0.18s ease;
+}
+
+.game-world.deemphasized {
+  opacity: 0.82;
+  filter: saturate(0.86);
 }
 
 .pixel-canvas {
@@ -565,6 +597,7 @@ body {
   grid-row: 3;
   min-height: 0;
   overflow: hidden;
+  background: var(--dialog);
 }
 
 .game-bottom-panel:empty {
@@ -728,6 +761,11 @@ body {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.game-hud-right.focus-condensed {
+  opacity: 0.94;
 }
 
 .minimap {
@@ -896,30 +934,32 @@ body {
   justify-content: center;
   height: 100%;
   min-height: 0;
+  padding: 10px 12px 14px;
 }
 
 .rpg-dialog {
   background: var(--dialog);
-  border-top: 3px solid var(--text-dim);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+  border: 3px solid var(--text-dim);
+  box-shadow: 6px 6px 0 var(--black);
   display: flex;
   width: 100%;
   height: 100%;
   min-height: 0;
   max-height: none;
   padding: 0;
+  overflow: hidden;
 }
 
 .rpg-dialog-portrait {
-  width: 100px;
+  width: 120px;
   background: var(--panel);
   border-right: 3px solid var(--text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 16px 12px;
   flex-shrink: 0;
 }
 
@@ -955,18 +995,25 @@ body {
 
 .rpg-dialog-body {
   flex: 1;
-  padding: 16px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   overflow-y: auto;
   min-width: 0;
+}
+
+.rpg-dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .rpg-dialog-title {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .rpg-dialog-title h3 {
@@ -976,12 +1023,21 @@ body {
   line-height: 1.5;
 }
 
+.rpg-dialog-subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
 .rpg-dialog-text {
   font-family: var(--font-body);
-  font-size: 1.15rem;
+  font-size: 1.22rem;
   color: var(--text-dim);
   line-height: 1.6;
-  min-height: 48px;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 2px solid var(--text-muted);
+  background: rgba(15, 15, 27, 0.34);
 }
 
 .tw-cursor {
@@ -995,33 +1051,42 @@ body {
 }
 
 .rpg-dialog-options {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 2px;
 }
 
 .rpg-option {
+  appearance: none;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   background: var(--panel);
   border: 2px solid var(--text-muted);
-  padding: 12px 16px;
+  padding: 14px 16px;
   cursor: pointer;
   text-align: left;
   font-family: var(--font-body);
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--text);
   box-shadow: none;
   margin: 0;
-  transition: border-color 0.1s;
+  transition: border-color 0.1s, transform 0.1s;
 }
 
 .rpg-option:hover,
 .rpg-option.selected {
   border-color: var(--highlight);
   background: var(--dialog);
+  transform: translateY(-2px);
+}
+
+.rpg-option-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .option-cursor {
@@ -1035,16 +1100,27 @@ body {
 .option-label {
   flex: 1;
   font-family: var(--font-title);
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   color: var(--text);
   line-height: 1.6;
+}
+
+.option-impact {
+  font-size: 0.92rem;
+  color: var(--green);
 }
 
 .option-effect {
   font-family: var(--font-body);
   font-size: 0.96rem;
   color: var(--text-dim);
-  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.option-future {
+  font-size: 0.92rem;
+  color: var(--gold);
+  line-height: 1.3;
 }
 
 /* ═══════════════════════════════════════════
@@ -1054,20 +1130,32 @@ body {
 .battle-menu {
   background: var(--dialog);
   border-top: 3px solid var(--text-muted);
-  padding: 12px 16px;
+  padding: 10px 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   height: 100%;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.battle-command-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 2px solid var(--text-muted);
+  background: rgba(15, 15, 27, 0.35);
+  padding: 8px 10px;
 }
 
 .battle-ap-bar {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .battle-ap-title {
@@ -1108,19 +1196,61 @@ body {
 }
 
 .end-turn-btn {
-  margin-left: auto;
   white-space: nowrap;
   flex-shrink: 0;
   padding: 8px 12px;
 }
 
+.battle-command-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.battle-turn-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.battle-turn-card {
+  font-family: var(--font-title);
+  font-size: 0.46rem;
+  color: var(--text);
+}
+
+.battle-turn-mult {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.battle-turn-mult.boost {
+  color: var(--gold);
+}
+
+.battle-main-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.6fr);
+  gap: 12px;
+}
+
+.battle-main-layout.details-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .battle-card-detail {
   border: 2px solid var(--text-muted);
   background: var(--panel);
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .battle-card-detail-head {
@@ -1212,17 +1342,25 @@ body {
   color: var(--text-muted);
 }
 
-.battle-cards {
+.battle-cards-panel {
+  min-height: 0;
+  overflow: hidden;
   display: flex;
+}
+
+.battle-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  align-content: start;
   gap: 12px;
-  overflow-x: auto;
-  padding: 4px 0 8px;
+  overflow-y: auto;
+  width: 100%;
+  padding: 2px 2px 8px;
 }
 
 .battle-card {
-  width: 186px;
-  min-width: 186px;
-  min-height: 232px;
+  min-width: 0;
+  min-height: 208px;
   background: var(--panel);
   border: 2px solid var(--text-muted);
   display: flex;
@@ -1236,7 +1374,7 @@ body {
 
 .battle-card:hover,
 .battle-card.active {
-  transform: translateY(-12px);
+  transform: translateY(-6px);
   border-color: var(--highlight);
   z-index: 5;
 }
@@ -1329,6 +1467,8 @@ body {
   color: var(--text-dim);
   font-family: var(--font-title);
   font-size: 0.6rem;
+  border: 2px dashed var(--text-muted);
+  width: 100%;
 }
 
 /* ═══════════════════════════════════════════
@@ -2044,6 +2184,18 @@ body {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
   }
+  .game-screen.interaction-focus {
+    grid-template-columns: 1fr;
+  }
+  .game-screen.phase-planning,
+  .game-screen.phase-event {
+    --center-canvas-fr: 0.3fr;
+    --center-dialog-fr: 1.7fr;
+  }
+  .game-screen.phase-action {
+    --center-canvas-fr: 0.42fr;
+    --center-dialog-fr: 1.58fr;
+  }
   .game-hud-left {
     grid-column: 1;
     grid-row: 1;
@@ -2058,6 +2210,9 @@ body {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 6px;
+  }
+  .game-screen.interaction-focus .game-hud-left {
+    max-height: 172px;
   }
   .player-panel {
     flex-direction: row;
@@ -2091,6 +2246,37 @@ body {
     grid-column: 1;
     grid-row: 2;
   }
+  .planning-header,
+  .planning-layout,
+  .battle-main-layout {
+    grid-template-columns: 1fr;
+  }
+  .planning-room-grid,
+  .rpg-dialog-options {
+    grid-template-columns: 1fr;
+  }
+  .planning-preview-card {
+    max-height: 42vh;
+    overflow-y: auto;
+  }
+  .battle-command-bar {
+    align-items: stretch;
+  }
+  .battle-command-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .rpg-dialog {
+    flex-direction: column;
+  }
+  .rpg-dialog-portrait {
+    width: 100%;
+    border-right: none;
+    border-bottom: 3px solid var(--text-muted);
+    flex-direction: row;
+    justify-content: flex-start;
+  }
   .status-alert-bar {
     flex-direction: column;
     align-items: stretch;
@@ -2120,9 +2306,29 @@ body {
 
 @media (max-width: 600px) {
   .title-fork, .title-profit { font-size: 1.8rem; }
-  .battle-card { width: 156px; min-width: 156px; min-height: 220px; }
+  .game-screen.interaction-focus .game-hud-left {
+    max-height: 142px;
+  }
+  .planning-panel {
+    padding: 10px;
+  }
+  .planning-room-card,
+  .planning-header-copy,
+  .planning-threat-box,
+  .planning-preview-card {
+    padding: 12px;
+  }
+  .battle-cards {
+    grid-template-columns: repeat(auto-fit, minmax(146px, 1fr));
+  }
+  .battle-card {
+    min-height: 196px;
+  }
   .battle-ap-bar {
     gap: 6px;
+  }
+  .battle-command-actions {
+    flex-wrap: wrap;
   }
   .battle-ap-count {
     font-size: 0.48rem;
@@ -2136,6 +2342,15 @@ body {
   }
   .battle-card-detail-meta > span {
     font-size: 0.82rem;
+  }
+  .rpg-dialog-overlay {
+    padding: 8px;
+  }
+  .rpg-dialog-body {
+    padding: 14px 12px;
+  }
+  .rpg-option {
+    padding: 12px;
   }
   .help-row {
     grid-template-columns: 74px 1fr;
@@ -2330,6 +2545,206 @@ body {
 }
 .preview-section.synergy .preview-label { color: var(--gold); }
 .preview-section.synergy .preview-effects { color: var(--highlight); }
+
+/* ═══════════════════════════════════════════
+   PLANNING PANEL
+   ═══════════════════════════════════════════ */
+
+.planning-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  overflow: hidden;
+}
+
+.planning-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
+  gap: 12px;
+}
+
+.planning-header-copy,
+.planning-threat-box,
+.planning-preview-card,
+.planning-room-card {
+  background: var(--panel);
+  border: 2px solid var(--text-muted);
+}
+
+.planning-header-copy {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planning-kicker,
+.planning-side-label {
+  font-family: var(--font-title);
+  font-size: 0.42rem;
+  color: var(--text-muted);
+}
+
+.planning-header-copy h3,
+.planning-preview-head h4 {
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--highlight);
+}
+
+.planning-header-copy p,
+.planning-preview-head p,
+.planning-preview-block p {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.planning-threat-box {
+  padding: 14px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+}
+
+.planning-threat-chip,
+.planning-faction-chip {
+  font-size: 0.92rem;
+  color: var(--text);
+  background: rgba(15, 15, 27, 0.38);
+  border: 1px solid var(--text-muted);
+  padding: 3px 8px;
+}
+
+.planning-threat-chip.safe {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.planning-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+  gap: 12px;
+}
+
+.planning-room-grid {
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.planning-room-card {
+  appearance: none;
+  width: 100%;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.planning-room-card:hover,
+.planning-room-card.active {
+  border-color: var(--highlight);
+  background: var(--dialog);
+  transform: translateY(-2px);
+}
+
+.planning-room-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.planning-room-name {
+  font-family: var(--font-title);
+  font-size: 0.52rem;
+  color: var(--text);
+}
+
+.planning-room-type {
+  font-size: 0.9rem;
+  color: var(--teal);
+  text-transform: capitalize;
+}
+
+.planning-room-summary {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.3;
+  flex: 1;
+}
+
+.planning-room-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.planning-room-bonus {
+  font-size: 0.92rem;
+  color: var(--gold);
+}
+
+.planning-room-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-title);
+  font-size: 0.42rem;
+  color: var(--text);
+}
+
+.planning-preview-card {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.planning-preview-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planning-preview-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--text-muted);
+  padding-top: 10px;
+}
+
+.planning-subtle {
+  color: var(--gold) !important;
+}
+
+.planning-faction-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planning-commit-btn {
+  width: 100%;
+  margin-top: auto;
+}
 
 /* ═══════════════════════════════════════════
    ROUND SUMMARY OVERLAY
