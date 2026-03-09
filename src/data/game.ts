@@ -118,5 +118,6 @@ export const companyStats: CompanyStat[] = [
   { id: 'stability', label: 'Product Stability', value: 5, max: 50, tone: 'cool' },
   { id: 'pressure', label: 'External Pressure', value: 0, max: 10, tone: 'danger' },
   { id: 'trust', label: 'Trust', value: 5, max: 50, tone: 'cool' },
+  { id: 'morale', label: 'Team Morale', value: 7, max: 10, tone: 'cool' },
   { id: 'risk', label: 'Risk Exposure', value: 2, max: 10, tone: 'danger' }
 ]

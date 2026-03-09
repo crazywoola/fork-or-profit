@@ -31,6 +31,7 @@ const INITIAL_STATS: Record<StatId, number> = {
   stability: 5,
   pressure: 0,
   trust: 5,
+  morale: 7,
   risk: 2,
 }
 
@@ -45,6 +46,7 @@ const MAX_STATS: Record<StatId, number> = {
   stability: 50,
   pressure: 10,
   trust: 50,
+  morale: 10,
   risk: 10,
 }
 
@@ -1096,6 +1098,15 @@ export class GameEngine {
       this.log('system', '[Scale Stage] Investor pressure increases: pressure +1')
     }
 
+    if (this.state.stats.pressure >= 8) {
+      this.state.stats.morale = this.clamp(this.state.stats.morale - 1, 0, MAX_STATS.morale)
+      this.log('system', '[Pressure] High investor pressure drains team morale: morale -1')
+    }
+    if (this.state.stats.morale <= 2) {
+      this.state.stats.stability = this.clamp(this.state.stats.stability - 1, 0, MAX_STATS.stability)
+      this.log('system', '[Morale] Low team morale hurts stability: stability -1')
+    }
+
     const effectiveBurn = this.getEffectiveBurnRate()
     const netIncome = this.state.stats.revenue - effectiveBurn
     this.state.stats.cash = this.clamp(this.state.stats.cash + netIncome, 0, MAX_STATS.cash)
@@ -1176,6 +1187,10 @@ export class GameEngine {
     }
     if (stats.pressure >= 10) {
       this.state.victoryReason = 'External pressure broke team morale.'
+      return 'lose'
+    }
+    if (stats.morale <= 0) {
+      this.state.victoryReason = 'Team morale collapsed. The company fell apart.'
       return 'lose'
     }
 
@@ -1469,6 +1484,53 @@ export class GameEngine {
         if (this.state.round % 4 === 0) {
           this.applyEffect({ growth: 1 })
           this.log('buff', '[Role Passive] growth momentum: growth +1')
+        }
+        break
+    }
+
+    // Role-ID specific passives (more granular than archetype)
+    const roleId = this.config?.role.id
+    switch (roleId) {
+      case 'staff-engineer':
+        if (this.state.round % 2 === 0) {
+          this.applyEffect({ stability: 1 })
+          this.log('buff', '[Role Passive] Code Review Culture: stability +1')
+        }
+        break
+      case 'oss':
+        if (this.state.round % 2 === 0) {
+          this.applyEffect({ community: 1, trust: 1 })
+          this.log('buff', '[Role Passive] Maintainer Cadence: community +1, trust +1')
+        }
+        break
+      case 'sre':
+        if (this.state.round % 3 === 0) {
+          this.applyEffect({ stability: 1, risk: -1 })
+          this.log('buff', '[Role Passive] Reliability Mindset: stability +1, risk -1')
+        }
+        break
+      case 'security':
+        if (this.state.stats.risk >= 5) {
+          this.applyEffect({ risk: -1 })
+          this.log('buff', '[Role Passive] Security Posture: high risk, auto risk -1')
+        }
+        break
+      case 'privacy':
+        if (this.state.round % 3 === 0) {
+          this.applyEffect({ trust: 1, risk: -1 })
+          this.log('buff', '[Role Passive] Privacy-by-Default: trust +1, risk -1')
+        }
+        break
+      case 'cfo':
+        if (this.state.round % 4 === 0 && this.state.stats.cash < 10) {
+          this.applyEffect({ cash: 1 })
+          this.log('buff', '[Role Passive] Financial Discipline: low cash, treasury recovery +1')
+        }
+        break
+      case 'people':
+        if (this.state.round % 3 === 0) {
+          this.applyEffect({ morale: 1 })
+          this.log('buff', '[Role Passive] Culture Engine: morale +1')
         }
         break
     }

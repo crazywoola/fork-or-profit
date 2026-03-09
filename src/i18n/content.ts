@@ -39,6 +39,7 @@ const STAT_LABELS: Record<string, Record<StatLabelVariant, string>> = {
   stability: { lower: 'stability', title: 'Stability', upper: 'STABILITY' },
   pressure: { lower: 'pressure', title: 'Pressure', upper: 'PRESSURE' },
   trust: { lower: 'trust', title: 'Trust', upper: 'TRUST' },
+  morale: { lower: 'morale', title: 'Team Morale', upper: 'MORALE' },
   risk: { lower: 'risk', title: 'Risk', upper: 'RISK' },
 }
 

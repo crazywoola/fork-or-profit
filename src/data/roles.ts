@@ -264,7 +264,7 @@ export const roles: RoleProfile[] = [
     cards: ['用户故事地图', 'MVP 快速验证', '路线图发布'],
     archetype: 'product',
     accent: '#9bffb1',
-    statBonuses: { reputation: 1, growth: 2 },
+    statBonuses: { reputation: 1, growth: 2, morale: 1 },
     effectMultipliers: { 'Growth': 1.2, 'Monetization': 1.15 },
   },
   {
@@ -316,7 +316,7 @@ export const roles: RoleProfile[] = [
     cards: ['OKR 对齐', '运营看板', '交付加速'],
     archetype: 'operations',
     accent: '#d3ffb8',
-    statBonuses: { revenue: 1, stability: 2 },
+    statBonuses: { revenue: 1, stability: 2, morale: 1 },
     effectMultipliers: { 'Operations': 1.3, 'Growth': 1.1 },
   },
   {
@@ -394,7 +394,7 @@ export const roles: RoleProfile[] = [
     cards: ['人才引进', '文化宣言', '绩效复盘'],
     archetype: 'people',
     accent: '#c7ff9b',
-    statBonuses: { stability: 2, trust: 2 },
+    statBonuses: { stability: 2, trust: 2, morale: 2 },
     effectMultipliers: { 'Operations': 1.25, 'Growth': 1.1 },
   },
   {
@@ -433,7 +433,7 @@ export const roles: RoleProfile[] = [
     cards: ['体验改版', '设计系统搭建', '用户共创营'],
     archetype: 'design',
     accent: '#bba6ff',
-    statBonuses: { reputation: 3, community: 1 },
+    statBonuses: { reputation: 3, community: 1, morale: 1 },
     effectMultipliers: { 'Growth': 1.2, 'Open Source': 1.15 },
   },
   {

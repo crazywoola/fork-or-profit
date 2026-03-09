@@ -1,6 +1,6 @@
-# 策略卡牌（50 张）
+# 策略卡牌（52 张）
 
-策略卡分为 5 类，每类 10 张。每张卡显示打出后对各项指标的即时变化（+/- 数值）。
+策略卡分为 5 类（开源 10、商业化 10、增长 10、运营 12、融资 10），共 52 张。每张卡显示打出后对各项指标的即时变化（+/- 数值）。
 
 ## 指标缩写
 
@@ -470,9 +470,31 @@
 
 ---
 
+### 41. Automate Operations
+> 投资自动化来降低日常运营成本。
+
+| spd | stb |
+|-----|-----|
+| +1 | +1 |
+
+**附加**：`burn rate -1`（运营自动化节省支出，永久降低每回合消耗）
+
+---
+
+### 42. Cloud Cost Optimization
+> 合理规划云基础设施规模，谈判预留容量。
+
+| csh | stb |
+|-----|-----|
+| +2 | +1 |
+
+**附加**：`burn rate -1`（基础设施成本降低，永久生效）
+
+---
+
 ## 类型 5：融资与资本（Finance）
 
-### 41. Seed Round
+### 43. Seed Round
 > 完成种子轮融资，获得初始运营资金。
 
 | csh | ctr |
@@ -484,7 +506,7 @@
 
 ---
 
-### 42. Series A
+### 44. Series A
 > A 轮融资，引入机构投资人。
 
 | csh | ctr | prs |
@@ -496,7 +518,7 @@
 
 ---
 
-### 43. Series B
+### 45. Series B
 > B 轮融资，规模化扩张资金。
 
 | csh | ctr | prs |
@@ -508,7 +530,7 @@
 
 ---
 
-### 44. Strategic Investor
+### 46. Strategic Investor
 > 引入战略投资人（云厂商、大企业）。
 
 | csh | gro | ctr |
@@ -519,7 +541,7 @@
 
 ---
 
-### 45. IPO
+### 47. IPO
 > 公司上市，最终胜利路径之一。
 
 | csh | prs |
@@ -531,7 +553,7 @@
 
 ---
 
-### 46. Token Launch
+### 48. Token Launch
 > 发行加密代币（适用于 Web3 领域）。
 
 | csh | rep |
@@ -543,7 +565,7 @@
 
 ---
 
-### 47. Crowdfunding
+### 49. Crowdfunding
 > 通过 Kickstarter / Open Collective 向社区众筹。
 
 | csh | com |
@@ -554,7 +576,7 @@
 
 ---
 
-### 48. Government Grant
+### 50. Government Grant
 > 申请政府科研经费或产业扶持资金。
 
 | csh | rep |
@@ -565,7 +587,7 @@
 
 ---
 
-### 49. Venture Debt
+### 51. Venture Debt
 > 通过风险债务融资，不稀释股权但增加财务风险。
 
 | csh | rsk |
@@ -576,7 +598,7 @@
 
 ---
 
-### 50. Stock Buyback
+### 52. Stock Buyback
 > 回购员工/早期投资人股份，提升每股价值。
 
 | rep | csh |
@@ -587,6 +609,33 @@
 
 ---
 
+## 卡牌连击系统（Card Synergies）
+
+在同一回合内依次打出两张有特定搭配关系的卡，第二张打出时自动触发连击奖励：
+
+| 组合名称 | 第一张卡 | 第二张卡 | 连击奖励 |
+|----------|----------|----------|----------|
+| PR Blitz | Developer Evangelism | Hacker News Launch | growth +3 |
+| PR Blitz | Hacker News Launch | Developer Evangelism | growth +3 |
+| Dual Track Synergy | Open Core | Enterprise Edition | revenue +2，community +1 |
+| Dual Track Synergy | Enterprise Edition | Open Core | revenue +2，community +1 |
+| Platform Launch Synergy | SDK Release | Platform Strategy | growth +2，community +2 |
+| Platform Launch Synergy | Platform Strategy | SDK Release | growth +2，community +2 |
+| Engineering Momentum | Hire Engineers | Improve CI/CD | dev_speed +2 |
+| Engineering Momentum | Improve CI/CD | Hire Engineers | dev_speed +2 |
+| Clean Foundation | Security Audit | Tech Debt Cleanup | stability +2，risk -1 |
+| Clean Foundation | Tech Debt Cleanup | Security Audit | stability +2，risk -1 |
+| Viral Loop | Free Tier | Referral Program | growth +3 |
+| Viral Loop | Referral Program | Free Tier | growth +3 |
+| Community Rally | Community Events | Contributor Program | community +2，trust +1 |
+| Community Rally | Contributor Program | Community Events | community +2，trust +1 |
+| Full Service | Consulting Services | Enterprise Support | revenue +2，trust +1 |
+| Full Service | Enterprise Support | Consulting Services | revenue +2，trust +1 |
+
+> **叠加规则**：若当前进驻房间为 Platform（Ecosystem Lab），所有连击奖励额外叠加 `growth +1，community +1`。天赋中若有 `synergyBoost` 属性，同样叠加到连击奖励上。
+
+---
+
 ## 策略卡牌组构成
 
 | 类别 | 张数 | 核心目标 |
@@ -594,9 +643,11 @@
 | 开源策略 | 10 | 提升 community / trust |
 | 商业化策略 | 10 | 提升 revenue / control |
 | 增长策略 | 10 | 提升 growth / reputation |
-| 公司运营 | 10 | 提升 dev_speed / stability |
+| 公司运营 | 12 | 提升 dev_speed / stability，管理 burn rate |
 | 融资与资本 | 10 | 提升 cash，管理 pressure |
-| **合计** | **50** | |
+| **合计** | **52** | |
+
+> **burn rate 卡**：「Automate Operations」和「Cloud Cost Optimization」两张卡会永久降低每回合的现金消耗（burn rate），是延长生存窗口的关键运营卡。
 
 ### 行业专属扩展包
 

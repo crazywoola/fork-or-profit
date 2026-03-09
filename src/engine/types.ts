@@ -9,6 +9,7 @@ export type StatId =
   | 'stability'
   | 'pressure'
   | 'trust'
+  | 'morale'
   | 'risk'
 
 export type StatEffect = Partial<Record<StatId, number>>
